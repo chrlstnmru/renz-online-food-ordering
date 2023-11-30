@@ -21,14 +21,14 @@
 		type?: 'text' | 'password' | 'email' | 'number';
 		error?: string;
 		hideError?: boolean;
-		value?: string | number;
+		value?: string | number | null;
 	};
 
 	export let label: string = '';
 	export let type: 'text' | 'password' | 'email' | 'number' = 'text';
 	export let error: string | undefined = undefined;
 	export let hideError: boolean = false;
-	export let value: string | number = '';
+	export let value: string | number | null = '';
 
 	$: ({ class: className, ...rest } = $$restProps);
 </script>

@@ -9,9 +9,7 @@ import { db } from '$lib/server/db';
 import { categoryTable, productsTable, variantsTable } from '$lib/server/db/schema/ProductSchema';
 import { and, eq, sql } from 'drizzle-orm';
 import { generateID, stringEmpty } from '$lib/utils/helpers';
-import { uploadeCareAuth } from '$lib/server/uploadcare';
 import { z } from 'zod';
-import { deleteFile } from '@uploadcare/rest-client';
 import { groupEditedVariants } from '$lib/server/helpers';
 import type { Paginated, Product } from '$lib/server/types';
 import { uploadImage } from '$lib/server/supabase';
@@ -232,17 +230,10 @@ export const actions: Actions = {
 				.where(eq(productsTable.id, form.data.id))
 				.returning({ name: productsTable.name, image: productsTable.image });
 
-			console.log(deletedProduct);
-
 			const imageId = deletedProduct[0].image.match(/\/([^\/]+)\/$/)[1] as string;
 			console.log(imageId);
 
-			await deleteFile(
-				{
-					uuid: imageId.replace('/', '')
-				},
-				{ authSchema: uploadeCareAuth }
-			);
+			// TODO: Delete image from db
 		} catch (error) {
 			console.error(error);
 			return message(form, { type: 'error', content: 'Something went wrong.' }, { status: 500 });

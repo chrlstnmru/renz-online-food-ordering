@@ -42,7 +42,7 @@ export const productVariantForm = z.object({
 		.min(1, 'Product variant name is required.')
 		.max(255, 'Product variant name is too long.'),
 	price: z.number().min(0, 'Price must be greater than or equal to 0.'),
-	description: z.string().trim().max(255).nullable()
+	description: z.string().trim().max(255).optional().nullish()
 });
 
 export const productForm = z.object({

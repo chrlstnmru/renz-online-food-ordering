@@ -150,7 +150,7 @@
 			// form.variants = productVariants;
 			return form;
 		});
-		variants = productVariants;
+		variants = productVariants ?? [];
 
 		auditMode = 'update';
 		modifyDialogStates.open.set(true);
