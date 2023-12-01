@@ -106,7 +106,6 @@ export const load: PageServerLoad = async ({ url }) => {
 
 		const filterQuery = query.as('filtered');
 		const distinctIds = await db.select({ id: filterQuery.id }).from(filterQuery);
-		console.log(distinctIds);
 
 		if (distinctIds.length === 0) {
 			return { items: [], limit, page, pages: 0, total: 0 } as Paginated<UserOrder>;
@@ -141,8 +140,6 @@ export const load: PageServerLoad = async ({ url }) => {
 export const actions: Actions = {
 	updateOrder: async ({ request }) => {
 		const form = await superValidate(request, updateOrderFormSchema);
-
-		console.log(form);
 
 		if (!form.valid) {
 			return message(form, { type: 'error', content: 'Invalid form.' }, { status: 400 });

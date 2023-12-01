@@ -94,8 +94,6 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const total = distinctIds?.length;
 
-	console.log(total);
-
 	if (page > total) {
 		return new Response(
 			JSON.stringify({ items: [], page: page, pages: 0, limit: limit, total: 0 }),
@@ -140,9 +138,6 @@ export const GET: RequestHandler = async ({ url }) => {
 			}, new Map<string, Product>())
 			.values()
 	);
-
-	console.log('total', total);
-	console.log('paginated', products.length);
 
 	const result: Paginated<Product> = {
 		items: products,
