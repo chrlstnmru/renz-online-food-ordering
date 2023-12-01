@@ -156,7 +156,7 @@
 </script>
 
 <svelte:head>
-	<title>{data.product.name}</title>
+	<title>RENZ Online Food Ordering | {data.product.name}</title>
 
 	<meta name="description" content={data.product.name} />
 	<meta name="keywords" content={`RENZ Online Food Ordering, ${data.product.name}`} />

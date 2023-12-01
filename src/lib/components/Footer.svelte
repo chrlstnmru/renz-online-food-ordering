@@ -39,7 +39,7 @@
 					<p>
 						Email:
 						<a class="break-words underline" href="mailto:examplemail2000@gmail.com">
-							examplemail2000@gmail.com
+							renzpancitmalabon@gmail.com
 						</a>
 					</p>
 					<p>

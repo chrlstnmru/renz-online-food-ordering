@@ -20,7 +20,7 @@
 </script>
 
 <svelte:head>
-	<title>RENZ Online Food Ordering</title>
+	<title>RENZ Online Food Ordering | Home</title>
 </svelte:head>
 
 <WithBasketSummary>

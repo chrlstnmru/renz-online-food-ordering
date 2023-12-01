@@ -81,9 +81,10 @@
 				required
 			/>
 			<Input
+				class="remove-arrow"
 				label="Contact Number"
 				name="phone"
-				type="text"
+				type="number"
 				bind:value={$form.phone}
 				error={$errors.phone?.[0]}
 				required
