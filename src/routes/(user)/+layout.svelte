@@ -4,8 +4,6 @@
 	import type { LayoutData } from './$types';
 	import { setContext } from 'svelte';
 	import { basketSummaryStore } from '$lib/stores/basketSummaryStore';
-	import { page } from '$app/stores';
-	import { capitalize } from '$lib/utils/helpers';
 
 	export let data: LayoutData;
 
@@ -24,7 +22,7 @@
 
 <div class="flex min-h-screen flex-col">
 	<Header session={data.session} />
-	<main class="container my-4">
+	<main class="container my-4 flex flex-1 flex-col">
 		<slot />
 	</main>
 	<Footer />

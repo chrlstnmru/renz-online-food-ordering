@@ -2,6 +2,7 @@ import { message, superValidate } from 'sveltekit-superforms/server';
 import type { Actions, PageServerLoad } from './$types';
 import {
 	addProductFormSchema,
+	deleteReviewFormSchema,
 	instantOrderFormSchema,
 	reviewFormSchema
 } from '$lib/server/validation';
@@ -17,20 +18,27 @@ import {
 import { generateID, generateNumID } from '$lib/utils/helpers';
 import { getUserBasketId } from '$lib/server/helpers';
 import { productsTable, variantsTable } from '$lib/server/db/schema/ProductSchema';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import type { Product, UserReview } from '$lib/server/types';
 
 export const load: PageServerLoad = async ({ fetch, params }) => {
 	const addProductForm = superValidate(addProductFormSchema);
 	const reviewForm = superValidate(reviewFormSchema);
 	const instantOrderForm = superValidate(instantOrderFormSchema);
+	const deleteReviewForm = superValidate(deleteReviewFormSchema);
 
 	async function getProductData() {
 		const data = await fetch('/api/products/' + params.id);
 		return data.json() as Promise<Product>;
 	}
 
-	return { addProductForm, reviewForm, instantOrderForm, product: getProductData() };
+	return {
+		addProductForm,
+		reviewForm,
+		instantOrderForm,
+		deleteReviewForm,
+		product: getProductData()
+	};
 };
 
 export const actions: Actions = {
@@ -44,8 +52,6 @@ export const actions: Actions = {
 		if (!form.valid) {
 			return message(form, { type: 'error', content: 'Invalid form.' });
 		}
-
-		console.log('add', form.data);
 
 		let product;
 
@@ -119,8 +125,6 @@ export const actions: Actions = {
 		const form = await superValidate(request, reviewFormSchema);
 
 		if (!form.valid) {
-			console.log(form);
-
 			return message(form, { type: 'error', content: 'Invalid form.' });
 		}
 
@@ -218,5 +222,42 @@ export const actions: Actions = {
 		}
 
 		return message(form, { type: 'success', content: 'Order has been placed.' });
+	},
+	deleteReview: async ({ request, locals: { session } }) => {
+		if (!session) {
+			throw error(401, 'Unauthorized');
+		}
+
+		const form = await superValidate(request, deleteReviewFormSchema);
+
+		if (!form.valid) {
+			return message(form, { type: 'error', content: 'Invalid form.' });
+		}
+
+		try {
+			const result = await db
+				.delete(reviewsTable)
+				.where(
+					and(eq(reviewsTable.id, form.data.reviewId), eq(reviewsTable.userId, session.user.userId))
+				)
+				.returning();
+
+			if (result.length === 0) {
+				const error = new Error();
+				error.name = 'NO_REVIEW';
+				error.message = 'No review found.';
+				throw error;
+			}
+		} catch (error) {
+			if (error instanceof Error) {
+				if (error.name === 'NO_REVIEW') {
+					return message(form, { type: 'error', content: 'No review found.' });
+				}
+			}
+			console.error(error);
+			return message(form, { type: 'error', content: 'Something went wrong.' });
+		}
+
+		return message(form, { type: 'success', content: 'Review has been deleted.' });
 	}
 };

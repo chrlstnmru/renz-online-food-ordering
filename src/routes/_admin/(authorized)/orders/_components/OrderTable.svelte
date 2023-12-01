@@ -363,7 +363,7 @@
 				</tr>
 			{:else}
 				<tr class="h-full text-secondary-300 text-3xl">
-					<td colspan="7" class="py-4">No order found.</td>
+					<td colspan="8" class="py-4 text-center">No order found.</td>
 				</tr>
 			{/each}
 		</tbody>

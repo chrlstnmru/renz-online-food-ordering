@@ -10,7 +10,7 @@
 	export let data: PageData;
 	const loginForm = data.loginForm;
 
-	const { form, errors, enhance } = superForm(loginForm, {
+	const { form, errors, enhance, submitting } = superForm(loginForm, {
 		clearOnSubmit: 'errors-and-message',
 		multipleSubmits: 'prevent',
 		flashMessage: {
@@ -61,7 +61,9 @@
 				error={$errors.password?.[0]}
 				bind:value={$form.password}
 			/>
-			<Button class="mt-4 w-full justify-center" size="lg" type="submit">Log In</Button>
+			<Button class="mt-4 w-full justify-center" size="lg" type="submit" loading={$submitting}>
+				Log In
+			</Button>
 		</form>
 	</div>
 </main>

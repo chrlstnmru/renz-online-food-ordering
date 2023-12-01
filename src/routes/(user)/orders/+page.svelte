@@ -67,66 +67,68 @@
 </Dialog>
 
 <WithBasketSummary>
-	<div class="card flex-1">
-		<h2 class="text-2xl font-semibold">My Orders</h2>
-		{#if data.orders.length > 0}
-			<div class="overflow-x-auto">
-				<table class="w-full">
-					<thead class="text-base md:text-xl">
-						<th class="w-0 text-left">Order ID</th>
-						<th class="text-left">Description</th>
-						<th>Amount</th>
-						<th>Date Ordered</th>
-						<th>Order Status</th>
-						<th>Action</th>
-					</thead>
-					<tbody class="text-lg">
-						{#each data.orders as order, i (order.id)}
-							<tr class="text-center odd:bg-neutral-100">
-								<td class="text-justify" data-cell="Order #">{order.id}</td>
-								<td data-cell="Description" class="text-left">
-									{#each order.description as desc}
-										<p>{desc}</p>
-									{/each}
-								</td>
-								<td data-cell="Amount">{formatter.format(order.total)}</td>
-								<td data-cell="Data Ordered">{new Date(order.createdAt).toLocaleDateString()}</td>
-								<td data-cell="Order Status">
-									<span
-										class="rounded-full border border-amber-500 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-500 md:w-max"
-										data-status={order.status}
-									>
-										{order.status}
-									</span>
-									{#if order.status === 'rejected'}
-										<Tooltip tip={order.rejectReason}>
-											<div class="inline hover:cursor-help">
-												<Icon class="inline text-lg" icon="material-symbols:info-outline" />
-											</div>
-										</Tooltip>
-									{/if}
-								</td>
-								<td>
-									<Button
-										class="justify-center"
-										color="danger"
-										size="sm"
-										disabled={order.status !== 'waiting'}
-										on:click={() => showAlert(i)}
-									>
-										Cancel
-									</Button>
-								</td>
-							</tr>
-						{/each}
-					</tbody>
-				</table>
-			</div>
-		{:else}
-			<div class="grid h-full place-items-center text-center text-2xl text-neutral-500">
-				You have no orders yet.
-			</div>
-		{/if}
+	<div class="flex flex-1 flex-col gap-3">
+		<div class="card flex-1">
+			<h2 class="text-2xl font-semibold">My Orders</h2>
+			{#if data.orders.length > 0}
+				<div class="overflow-x-auto">
+					<table class="w-full">
+						<thead class="text-base md:text-xl">
+							<th class="w-0 text-left">Order ID</th>
+							<th class="text-left">Description</th>
+							<th>Amount</th>
+							<th>Date Ordered</th>
+							<th>Order Status</th>
+							<th>Action</th>
+						</thead>
+						<tbody class="text-lg">
+							{#each data.orders as order, i (order.id)}
+								<tr class="text-center odd:bg-neutral-100">
+									<td class="text-justify" data-cell="Order #">{order.id}</td>
+									<td data-cell="Description" class="text-left">
+										{#each order.description as desc}
+											<p>{desc}</p>
+										{/each}
+									</td>
+									<td data-cell="Amount">{formatter.format(order.total)}</td>
+									<td data-cell="Data Ordered">{new Date(order.createdAt).toLocaleDateString()}</td>
+									<td data-cell="Order Status">
+										<span
+											class="rounded-full border border-amber-500 bg-amber-50 px-3 py-1 text-sm font-medium text-amber-500 md:w-max"
+											data-status={order.status}
+										>
+											{order.status}
+										</span>
+										{#if order.status === 'rejected'}
+											<Tooltip tip={order.rejectReason}>
+												<div class="inline hover:cursor-help">
+													<Icon class="inline text-lg" icon="material-symbols:info-outline" />
+												</div>
+											</Tooltip>
+										{/if}
+									</td>
+									<td>
+										<Button
+											class="justify-center"
+											color="danger"
+											size="sm"
+											disabled={order.status !== 'waiting'}
+											on:click={() => showAlert(i)}
+										>
+											Cancel
+										</Button>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{:else}
+				<div class="grid h-full place-items-center text-center text-2xl text-neutral-500">
+					You have no orders yet.
+				</div>
+			{/if}
+		</div>
 		<Pagination />
 	</div>
 </WithBasketSummary>

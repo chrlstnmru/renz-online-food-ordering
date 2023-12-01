@@ -63,8 +63,13 @@ export const actions: Actions = {
 				.from(ordersTable)
 				.where(eq(ordersTable.id, form.data.orderId))
 				.limit(1);
-			if (currentStatus.status === 'rejected') {
+			if (currentStatus.status === 'rejected' || currentStatus.status === 'cancelled') {
 				return message(form, { type: 'error', content: 'Order does not exist.' });
+			} else if (currentStatus.status === 'preparing') {
+				return message(form, {
+					type: 'error',
+					content: 'Your order is being prepared, cancellation is not applicable.'
+				});
 			}
 			await db
 				.update(ordersTable)

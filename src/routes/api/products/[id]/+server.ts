@@ -64,7 +64,6 @@ export const GET: RequestHandler = async ({ params }) => {
 
 			product.ratings!.metrics[rating.rating].count = freqency;
 			product.ratings!.metrics[rating.rating].value = freqency / product.ratings!.total;
-			console.log(`${rating.rating} Star: ${freqency} / ${ratings[0].total}`);
 
 			totalFn += fn;
 			comulativeFreq += freqency;

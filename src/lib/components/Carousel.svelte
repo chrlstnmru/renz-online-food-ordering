@@ -6,12 +6,10 @@
 	let maxScrollPos = 0;
 
 	function previous() {
-		console.log('previous');
 		scrollImageList(-1);
 	}
 
 	function next() {
-		console.log('next');
 		scrollImageList(1);
 	}
 
@@ -24,7 +22,6 @@
 		const elem = event.target as HTMLElement;
 		scrollPos = elem.scrollLeft;
 		maxScrollPos = imageList.scrollWidth - imageList.clientWidth;
-		console.log(scrollPos);
 	}
 
 	$: if (imageList) {

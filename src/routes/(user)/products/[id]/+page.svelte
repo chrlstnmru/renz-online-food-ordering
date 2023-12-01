@@ -80,6 +80,10 @@
 	let isLoadingComments = false;
 	setContext('userReviews', userReviews);
 
+	$: if (data.product.reviews) {
+		userReviews.set(data.product.reviews);
+	}
+
 	async function loadMoreComments() {
 		let limit = 5;
 		let offset = (reviewCount / limit) * limit;
@@ -196,7 +200,7 @@
 	<div class="card mx-auto w-full max-w-3xl space-y-12 p-6 sm:max-w-md">
 		<section class="mx-auto flex gap-6 sm:flex-col">
 			<div class="max-w-[400px] flex-grow overflow-hidden rounded-md">
-				<img class="object-cover" src="/images/best-0.png" alt="" />
+				<img class="object-cover" src={data.product.image} alt="" />
 			</div>
 			<div class="flex flex-col justify-between gap-4">
 				<h2 class="text-4xl font-semibold">{data.product.name}</h2>
@@ -250,7 +254,11 @@
 		<section class="grid w-full">
 			<h2 class="text-xl font-semibold">Ratings and Reviews</h2>
 			<RatingsChart data={ratings} />
-			<Reviews reviewForm={data.reviewForm} productId={$page.params.id} />
+			<Reviews
+				reviewForm={data.reviewForm}
+				productId={$page.params.id}
+				deleteReviewForm={data.deleteReviewForm}
+			/>
 			{#if reviewCount < reviewTotal}
 				<Button
 					class="mx-auto justify-center"

@@ -6,7 +6,7 @@ const config = {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem'
+			padding: '1.25rem'
 		},
 		extend: {
 			fontFamily: {
@@ -45,7 +45,8 @@ const config = {
 				xl: { max: '1279px' },
 				lg: { max: '1023px' },
 				md: { max: '767px' },
-				sm: { max: '639px' }
+				sm: { max: '639px' },
+				xs: { max: '479px' }
 			}
 		}
 	},

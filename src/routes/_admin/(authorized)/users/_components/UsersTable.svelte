@@ -17,21 +17,24 @@
 
 <Dialog bind:states={userInfoDialog}>
 	<svelte:fragment slot="title">User Info</svelte:fragment>
-	<div id="user-info">
-		<span data-label="Id">{selectedUser.id}</span>
-		<span data-label="Name"
-			>{[selectedUser.firstName, selectedUser.middleName, selectedUser.lastName].join(' ')}</span
-		>
-		<span data-label="Email">{selectedUser.email}</span>
-		<span data-label="Phone">{selectedUser.phone}</span>
-		<span data-label="Address">{selectedUser.address}</span>
-		<span data-label="Date joined">{new Date(selectedUser.createdAt).toLocaleDateString()}</span>
+	<div id="user-info" class="max-w-[340px]">
+		<span data-label="Id" class="wrap">{selectedUser.id}</span>
+		<span data-label="Name" class="wrap">
+			{[selectedUser.firstName, selectedUser.middleName, selectedUser.lastName].join(' ')}
+		</span>
+		<span data-label="Email" class="break-words">{selectedUser.email}</span>
+		<span data-label="Phone" class="wrap">{selectedUser.phone}</span>
+		<span data-label="Address" class="wrap">{selectedUser.address}</span>
+		<span data-label="Date joined" class="wrap">
+			{new Date(selectedUser.createdAt).toLocaleDateString()}
+		</span>
 	</div>
 </Dialog>
 
 <div class="custom-scrollbar mt-4 flex-1 overflow-y-auto rounded-md border">
 	<table class="relative w-full" class:h-full={!data.items.length}>
 		<thead class="sticky top-0 border-b text-left">
+			<th class="w-0"></th>
 			<th>First name</th>
 			<th>Middle name</th>
 			<th>Last name</th>
@@ -43,6 +46,7 @@
 		<tbody class="text-center">
 			{#each data.items as user, i (user.id)}
 				<tr class="text-left odd:bg-black/[0.025]">
+					<td class="w-0">{i + 1}</td>
 					<td class="max-w-[28ch] truncate">{user.firstName}</td>
 					<td class="max-w-[28ch] truncate">{user.middleName ?? ''}</td>
 					<td class="max-w-[28ch] truncate">{user.lastName}</td>
@@ -82,7 +86,7 @@
 		@apply px-5 py-2.5;
 	}
 	[data-label] {
-		@apply grid grid-cols-[12ch,auto] px-4 py-2;
+		@apply grid grid-cols-[12ch,auto] break-all px-4 py-2;
 	}
 	[data-label]::before {
 		content: attr(data-label) ': ';

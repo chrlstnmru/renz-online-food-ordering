@@ -4,8 +4,39 @@
 	import type { UserReview } from '$lib/server/types';
 	import type { Session } from 'lucia';
 	import { getContext } from 'svelte';
+	import RatingIndicator from './RatingIndicator.svelte';
+	import { superForm } from 'sveltekit-superforms/client';
+	import type { SuperValidated } from 'sveltekit-superforms';
+	import type { deleteReviewFormSchema } from '$lib/server/validation';
+	import { addToast } from './Toaster.svelte';
+	import { capitalize } from '$lib/utils/helpers';
 
 	export let data: UserReview;
+
+	export let deleteReviewForm: SuperValidated<typeof deleteReviewFormSchema> | null = null;
+
+	let deleteForm: ReturnType<typeof superForm<typeof deleteReviewFormSchema>> | null = null;
+	if (deleteReviewForm) {
+		deleteForm = superForm(deleteReviewForm, {
+			onSubmit: ({ formData }) => {
+				formData.append('reviewId', data.id);
+			},
+			onUpdated: ({ form }) => {
+				const formMsg = form.message;
+				let message = formMsg?.content;
+				if (formMsg) {
+					addToast(
+						{
+							title: capitalize(formMsg.type),
+							description: message
+						},
+						formMsg.type
+					);
+				}
+			}
+		});
+	}
+
 	const session = getContext<Session>('session');
 </script>
 
@@ -22,14 +53,7 @@
 					<h3 class="truncate text-lg font-semibold">
 						{data.user.name}
 					</h3>
-					<div class="my-auto flex h-max w-max items-center gap-0.5 self-start text-sm">
-						{#each Array(5) as _, i}
-							<Icon
-								class={i < data.rating ? 'text-amber-500' : 'text-neutral-300'}
-								icon="bi:star-fill"
-							/>
-						{/each}
-					</div>
+					<RatingIndicator rating={data.rating} />
 				</div>
 				{#if data.verified}
 					<div title="Verified">
@@ -39,13 +63,20 @@
 				<span class="text-sm opacity-80">{new Date(data.createdAt).toLocaleDateString()}</span>
 			</div>
 			{#if session && session.user.userId === data.user.id}
-				<div class="hidden group-hover:block md:block">
-					<Button
-						class="py-0.5 sm:bg-red-500/10 sm:text-red-500"
-						variant="ghost"
-						color="danger"
-						size="xs">Delete</Button
-					>
+				<div class="invisible group-hover:visible md:visible">
+					{#if deleteForm}
+						<form action="?/deleteReview" method="POST" use:deleteForm.enhance>
+							<Button
+								class="py-0.5 sm:bg-red-500/10 sm:text-red-500"
+								variant="ghost"
+								color="danger"
+								size="xs"
+								type="submit"
+							>
+								Delete
+							</Button>
+						</form>
+					{/if}
 				</div>
 			{/if}
 		</div>

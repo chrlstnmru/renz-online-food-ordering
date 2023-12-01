@@ -69,6 +69,10 @@ export const reviewFormSchema = z.object({
 	comment: z.string().trim().max(255).optional().nullable()
 });
 
+export const deleteReviewFormSchema = z.object({
+	reviewId: z.string().trim().min(1).max(255)
+});
+
 export const checkoutFormSchema = z.object({
 	refno: z
 		.string()
@@ -139,4 +143,8 @@ export const changeAdminInfoSchema = z.object({
 		.max(255),
 	email: z.string().email().trim().min(1).max(255),
 	password: z.string().trim().min(1)
+});
+
+export const resetRequestFormSchema = z.object({
+	email: z.string().email().trim().min(1).max(255)
 });

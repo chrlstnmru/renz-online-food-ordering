@@ -5,6 +5,7 @@ import type { RequestHandler } from './$types';
 import type { Paginated, Product } from '$lib/server/types';
 import { withPagination, withSearch } from '$lib/server/helpers';
 import { PUBLIC_ASSETS_URL } from '$env/static/public';
+import { orderItemsTable, ordersTable, reviewsTable } from '$lib/server/db/schema/UserSchema';
 
 export const GET: RequestHandler = async ({ url }) => {
 	// Pagination
@@ -14,6 +15,38 @@ export const GET: RequestHandler = async ({ url }) => {
 	// Filters
 	const search = url.searchParams.get('search');
 	const category = url.searchParams.get('category');
+
+	// Get ratings
+	const totalCommentsQuery = db
+		.select({
+			productId: sql<string>`${reviewsTable.productId}`.as('totalCommentsProdId'),
+			total: sql<number>`count(${reviewsTable.id})`.as('total')
+		})
+		.from(reviewsTable)
+		.groupBy(reviewsTable.productId)
+		.as('totalComments');
+	const ratingsQuery = db
+		.select({
+			id: reviewsTable.productId,
+			productId: sql<string>`${reviewsTable.productId}`.as('ratingProdId'),
+			avgRating: sql<number>`cast(avg(${reviewsTable.rating}) as numeric)`.as('avgRating')
+		})
+		.from(reviewsTable)
+		.groupBy(reviewsTable.productId)
+		.as('ratings');
+
+	// Get solds
+	const soldsQuery = db
+		.select({
+			id: ordersTable.id,
+			productId: sql<string>`${orderItemsTable.productId}`.as('soldProdId'),
+			sold: sql<number>`cast(count(${orderItemsTable.productId}) as integer)`.as('sold')
+		})
+		.from(orderItemsTable)
+		.innerJoin(ordersTable, eq(ordersTable.id, orderItemsTable.orderId))
+		.where(eq(ordersTable.status, 'delivered'))
+		.groupBy(orderItemsTable.productId, ordersTable.id)
+		.as('solds');
 
 	// Apply filters
 	const { id, ...columns } = getTableColumns(productsTable);
@@ -26,27 +59,29 @@ export const GET: RequestHandler = async ({ url }) => {
 			variantId: variantsTable.id,
 			variantName: variantsTable.name,
 			variantPrice: variantsTable.price,
-			variantDescription: variantsTable.description
+			variantDescription: variantsTable.description,
+			avgRating: ratingsQuery.avgRating,
+			sold: soldsQuery.sold,
+			reviewCount: totalCommentsQuery.total
 		})
 		.from(productsTable)
 		.leftJoin(categoryTable, eq(productsTable.categoryId, categoryTable.id))
 		.leftJoin(variantsTable, eq(productsTable.id, variantsTable.productId))
+		.leftJoin(ratingsQuery, eq(ratingsQuery.productId, productsTable.id))
+		.leftJoin(totalCommentsQuery, eq(totalCommentsQuery.productId, productsTable.id))
+		.leftJoin(soldsQuery, eq(soldsQuery.productId, productsTable.id))
 		.orderBy(asc(productsTable.createdAt))
 		.$dynamic();
 
 	let query = withSearch(selectQuery, `%`, [productsTable.name]);
 
 	if (search) {
-		console.log('with search');
-
-		query = withSearch(query, `%${search}%`, [productsTable.name]);
+		query = withSearch(query, `%${search}%`, [productsTable.name, productsTable.id]);
 	}
 
 	if (category && category !== 'all') {
-		console.log('with category');
 		query = withSearch(query, `${category}`, [categoryTable.name]);
 		if (search) {
-			console.log('with search and category');
 			query = query.where(
 				and(eq(categoryTable.name, `${category}`), eq(productsTable.name, `%${search}%`))
 			);
@@ -72,6 +107,7 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	// Assemble Results
 	const queryResult = await withPagination(query, page, limit);
+
 	const products = Array.from(
 		queryResult
 			.reduce((acc, item) => {
@@ -80,14 +116,9 @@ export const GET: RequestHandler = async ({ url }) => {
 					if (item.image) {
 						imageURL = new URL(item.image, PUBLIC_ASSETS_URL).toString();
 					}
-
 					acc.set(item.id, {
-						id: item.id,
-						name: item.name,
-						price: item.price,
+						...item,
 						image: imageURL,
-						createdAt: item.createdAt,
-						updatedAt: item.updatedAt,
 						category: item.categoryId ? { id: item.categoryId, name: item.categoryName! } : null,
 						variants: []
 					});
@@ -107,6 +138,9 @@ export const GET: RequestHandler = async ({ url }) => {
 			}, new Map<string, Product>())
 			.values()
 	);
+
+	console.log('total', total);
+	console.log('paginated', products.length);
 
 	const result: Paginated<Product> = {
 		items: products,

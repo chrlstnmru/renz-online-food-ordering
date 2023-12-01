@@ -8,7 +8,7 @@
 	import { getContext } from 'svelte';
 	import type { UserReview } from '$lib/server/types';
 	import { superForm } from 'sveltekit-superforms/client';
-	import type { reviewFormSchema } from '$lib/server/validation';
+	import type { deleteReviewFormSchema, reviewFormSchema } from '$lib/server/validation';
 	import type { SuperValidated } from 'sveltekit-superforms';
 	import { addToast } from '$lib/components/Toaster.svelte';
 	import { capitalize, stringEmpty } from '$lib/utils/helpers';
@@ -16,6 +16,7 @@
 
 	export let productId: string;
 	export let reviewForm: SuperValidated<typeof reviewFormSchema>;
+	export let deleteReviewForm: SuperValidated<typeof deleteReviewFormSchema>;
 
 	const reviews = getContext<Writable<UserReview[]>>('userReviews');
 
@@ -106,6 +107,6 @@
 {/if}
 <div class="mt-2 grid w-full space-y-1">
 	{#each $reviews as review}
-		<UserComment data={review} />
+		<UserComment data={review} deleteReviewForm={deleteReviewForm} />
 	{/each}
 </div>

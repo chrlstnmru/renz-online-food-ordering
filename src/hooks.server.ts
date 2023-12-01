@@ -5,7 +5,13 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const resourceURL = event.url.pathname;
 	const apiProtectedRoutes = ['/api/users/basket'];
 	const userProtectedRoutes = ['/basket', '/orders', '/profile', '/reviews'];
-	const adminPublicRoutes = ['/_admin', '/_admin/setup', '/_admin/logout'];
+	const adminPublicRoutes = [
+		'/_admin',
+		'/_admin/setup',
+		'/_admin/logout',
+		'/_admin/reset',
+		'/_admin/reset/verify'
+	];
 
 	if (event.url.pathname.startsWith('/_admin')) {
 		event.locals.auth = adminAuth.handleRequest(event);

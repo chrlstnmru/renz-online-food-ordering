@@ -13,13 +13,14 @@
 		</h2>
 		<div class="flex items-center justify-between">
 			<p class="flex items-center font-medium">
-				<Icon class="mr-1 inline aspect-square w-4 text-yellow-500" icon="bi:star-fill" />5.0
-				<span class="ml-1 font-normal">(200)</span>
+				<Icon class="mr-1 inline aspect-square w-4 text-yellow-500" icon="bi:star-fill" />
+				{data.avgRating && data.avgRating !== 0 ? Number(data.avgRating).toPrecision(2) : 0}
+				<span class="ml-1 font-normal">({data.reviewCount ?? 0})</span>
 			</p>
-			<p>300 sold</p>
+			<p>{data.sold ?? 0} sold</p>
 		</div>
 	</div>
-	<div class="stack w-full overflow-hidden rounded-lg">
+	<div class="stack h-full w-full overflow-hidden rounded-lg">
 		<img
 			class="object-cover"
 			src={data.image}

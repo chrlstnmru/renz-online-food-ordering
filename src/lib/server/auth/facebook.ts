@@ -42,7 +42,8 @@ export async function validateFacebookCallback(
 				attributes: {
 					first_name: facebookName[0],
 					last_name: facebookName[1],
-					email: facebookUser.email
+					email: facebookUser.email,
+					image: facebookUser.picture.data.url
 				}
 			})
 		)

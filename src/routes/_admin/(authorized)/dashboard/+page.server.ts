@@ -3,8 +3,9 @@ import { ordersTable, usersTable } from '$lib/server/db/schema/UserSchema';
 import { and, desc, eq, not, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import { productsTable } from '$lib/server/db/schema/ProductSchema';
+import type { BestSeller } from '$lib/server/types';
 
-export const load: PageServerLoad = async ({ depends }) => {
+export const load: PageServerLoad = async ({ fetch }) => {
 	async function getData() {
 		const delivered = db
 			.select({ delivered: sql<string>`cast(count(*) as integer)` })
@@ -53,7 +54,14 @@ export const load: PageServerLoad = async ({ depends }) => {
 			.limit(10);
 	}
 
-	await getRecentOrders();
+	async function getBestSelling() {
+		const res = await fetch('/api/products/best-selling');
+		return res.json() as Promise<BestSeller[]>;
+	}
 
-	return { dataOverview: getData(), recentOrders: getRecentOrders() };
+	return {
+		dataOverview: getData(),
+		recentOrders: getRecentOrders(),
+		bestSelling: getBestSelling()
+	};
 };

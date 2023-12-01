@@ -1,13 +1,14 @@
 import { nanoid } from 'nanoid';
 import { adminAuth } from './auth';
 import { db } from './db';
-import { adminsTable } from './db/schema/AdminSchema';
+import { adminsTable, resetTokenTable } from './db/schema/AdminSchema';
 import type { ProductVariantInsert, ProductVariantSelect } from './db/schema/ProductSchema';
 import type { ProductVariantForm } from './validation';
 import { generateID, stringEmpty } from '$lib/utils/helpers';
 import type { AnyPgSelect, PgColumn, SelectedFields } from 'drizzle-orm/pg-core';
 import { and, Column, eq, ilike, inArray, or, sql, type SQLWrapper } from 'drizzle-orm';
 import { basketTable } from './db/schema/UserSchema';
+import { isWithinExpiration } from 'lucia/utils';
 
 export async function adminExists() {
 	const admin = await db.select({ id: adminsTable.id }).from(adminsTable).limit(1);
@@ -87,7 +88,7 @@ export function withPagination<T extends AnyPgSelect>(
 	page: number = 1,
 	pageSize: number = 10
 ) {
-	return (qb.limit(pageSize) as T).offset((page - 1) * pageSize);
+	return (qb.limit(pageSize) as T).offset((page - 1) * pageSize + 1);
 }
 
 export function withSearch<T extends AnyPgSelect>(
@@ -131,4 +132,21 @@ export async function getUserBasketId(userId: string) {
 
 		return resolve(result[0].id);
 	}) as Promise<string>;
+}
+
+export async function generateResetToken(id: string) {
+	const EXPIRES_IN = 1000 * 60 * 60 * 1; // 1 hour
+	const storedToken = await db
+		.selectDistinct()
+		.from(resetTokenTable)
+		.where(eq(resetTokenTable.userId, id))
+		.limit(1);
+
+	// Reuse exisiting token if it's not expired
+	if (storedToken.length > 0) {
+		const reusableToken = storedToken.find((token) => {
+			return isWithinExpiration(Number(token.expires) - EXPIRES_IN / 2);
+		});
+		if (reusableToken) return reusableToken.id;
+	}
 }

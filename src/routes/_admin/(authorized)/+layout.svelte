@@ -22,8 +22,6 @@
 				'postgres_changes',
 				{ event: 'INSERT', schema: 'public', table: 'orders' },
 				async (payload: any) => {
-					console.log(payload);
-					await invalidateAll();
 					addToast(
 						{
 							title: 'New Order',
@@ -31,21 +29,23 @@
 						},
 						'info'
 					);
+					await invalidateAll();
 				}
 			)
 			.on(
 				'postgres_changes',
 				{ event: 'UPDATE', schema: 'public', table: 'orders' },
 				async (payload: any) => {
-					console.log(payload);
+					if (payload.new.status === 'cancelled') {
+						addToast(
+							{
+								title: 'Order Cancelled',
+								description: `Order #${payload.new.id} has been cancelled.`
+							},
+							'info'
+						);
+					}
 					await invalidateAll();
-					addToast(
-						{
-							title: 'Order Updated',
-							description: `Order #${payload.new.id} has been placed.`
-						},
-						'info'
-					);
 				}
 			)
 			.subscribe();

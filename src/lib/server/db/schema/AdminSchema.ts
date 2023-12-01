@@ -1,4 +1,4 @@
-import { bigint, pgSchema, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { bigint, integer, pgSchema, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const adminSchema = pgSchema('admin');
 
@@ -35,4 +35,14 @@ export const keysTable = adminSchema.table('keys', {
 	hashedPassword: varchar('hashed_password', {
 		length: 255
 	})
+});
+
+export const resetTokenTable = adminSchema.table('password_reset_token', {
+	id: varchar('id', {
+		length: 255
+	}).primaryKey(),
+	expires: integer('expires').notNull(),
+	userId: varchar('user_id', { length: 27 })
+		.references(() => adminsTable.id, { onDelete: 'cascade' })
+		.notNull()
 });

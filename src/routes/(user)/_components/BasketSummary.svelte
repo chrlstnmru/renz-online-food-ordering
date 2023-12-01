@@ -3,7 +3,7 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import { basketSummaryStore } from '$lib/stores/basketSummaryStore';
 	import type { DialogStates } from '@melt-ui/svelte';
-	import { getContext } from 'svelte';
+	import { getContext, setContext } from 'svelte';
 	import BasketItems from './BasketItems.svelte';
 	import Payment from './Payment.svelte';
 	import { superForm } from 'sveltekit-superforms/client';
@@ -38,7 +38,7 @@
 		}
 	});
 
-	let checkoutDialogStates: DialogStates;
+	export let checkoutDialogStates: DialogStates;
 	let checkoutDialogIndex = 0;
 </script>
 
@@ -63,20 +63,22 @@
 				<Payment bind:value={$form.refno} error={$errors.refno?.[0]} />
 			{/if}
 		</div>
-		<div class="grid grid-cols-2 gap-1.5">
-			<Button
-				class="justify-center"
-				variant="ghost"
-				color="neutral"
-				disabled={checkoutDialogIndex === 0}
-				on:click={() => checkoutDialogIndex--}>Back</Button
-			>
-			{#if checkoutDialogIndex === 0}
-				<Button class="justify-center" on:click={() => checkoutDialogIndex++}>Next</Button>
-			{:else if checkoutDialogIndex === 1}
-				<Button class="justify-center" type="submit" loading={$submitting}>Place Order</Button>
-			{/if}
-		</div>
+		{#if summary.entries.length !== 0}
+			<div class="grid grid-cols-2 gap-1.5">
+				<Button
+					class="justify-center"
+					variant="ghost"
+					color="neutral"
+					disabled={checkoutDialogIndex === 0}
+					on:click={() => checkoutDialogIndex--}>Back</Button
+				>
+				{#if checkoutDialogIndex === 0}
+					<Button class="justify-center" on:click={() => checkoutDialogIndex++}>Next</Button>
+				{:else if checkoutDialogIndex === 1}
+					<Button class="justify-center" type="submit" loading={$submitting}>Place Order</Button>
+				{/if}
+			</div>
+		{/if}
 	</form>
 </Dialog>
 

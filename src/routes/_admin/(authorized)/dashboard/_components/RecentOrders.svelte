@@ -16,20 +16,21 @@
 
 	moment.updateLocale('en', {
 		relativeTime: {
+			past: '%s',
 			s: 'just now',
-			ss: '%d seconds',
-			m: '1 minute',
-			mm: '%d minutes',
-			h: '1 hour',
-			hh: '%d hours',
-			d: '1 day',
-			dd: '%d days',
-			w: '1 week',
-			ww: '%d weeks',
-			M: '1 month',
-			MM: '%d months',
-			y: '1 year',
-			yy: '%d years'
+			ss: '%d seconds ago',
+			m: '1 minute ago',
+			mm: '%d minutes ago',
+			h: '1 hour ago',
+			hh: '%d hours ago',
+			d: '1 day ago',
+			dd: '%d days ago',
+			w: '1 week ago',
+			ww: '%d weeks ago',
+			M: '1 month ago',
+			MM: '%d months ago',
+			y: '1 year ago',
+			yy: '%d years ago'
 		}
 	});
 
@@ -44,7 +45,7 @@
 <section class="flex flex-1 flex-col">
 	<h3 class="text-xl text-secondary-500">Recent Orders</h3>
 	<div class="card custom-scrollbar mt-2 flex-1 overflow-y-auto">
-		<table class="h-full w-full">
+		<table class="w-full" class:h-full={data.length === 0}>
 			<thead class="bg-white text-left">
 				<th>Order #</th>
 				<th>Reference #</th>

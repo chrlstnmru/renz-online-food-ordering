@@ -27,7 +27,6 @@ export function capitalize(text: string) {
 	const capitalizedWords = words.map((word) => {
 		return word.charAt(0).toUpperCase() + word.substring(1);
 	});
-	console.log(capitalizedWords.join(' '));
 
 	return capitalizedWords.join(' ');
 }

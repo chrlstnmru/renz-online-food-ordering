@@ -8,13 +8,11 @@
 	import Button from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import type {
-		ProductForm,
 		productForm as productFormSchema,
 		ProductVariantForm
 	} from '$lib/server/validation';
 	import Icon from '@iconify/svelte';
 	import type { DialogStates } from '@melt-ui/svelte';
-	import { writable } from 'svelte/store';
 	import type { SuperValidated } from 'sveltekit-superforms';
 	import { superForm } from 'sveltekit-superforms/client';
 	import Select from 'svelte-select';
@@ -23,14 +21,22 @@
 	import Dropzone from 'svelte-file-dropzone/Dropzone.svelte';
 	import ImageCropper from './ImageCropper.svelte';
 	import type { Point } from 'svelte-easy-crop/types';
-	import type { Paginated, Product } from '$lib/server/types';
+	import type { Paginated, Product, UserReview } from '$lib/server/types';
 	import { formatter, parseAssetURL } from '$lib/utils/helpers';
+	import RatingIndicator from '$lib/components/RatingIndicator.svelte';
+	import Tooltip from '$lib/components/Tooltip.svelte';
+	import UserComment from '$lib/components/UserComment.svelte';
 
 	export let form: SuperValidated<typeof productFormSchema>;
 	export let categories: { id?: string; name: string }[];
 	export let products: Paginated<Product>;
 	$: categories = [{ id: undefined, name: 'None' }, ...categories];
 
+	// Form states
+	let auditMode: 'create' | 'update' | 'delete' = 'create';
+	let formCreateIndex = 0;
+
+	// Product mutation form
 	const {
 		form: productForm,
 		reset,
@@ -41,8 +47,6 @@
 		clearOnSubmit: 'errors-and-message',
 		multipleSubmits: 'prevent',
 		onSubmit: ({ formData }) => {
-			console.log(cropResult?.imageBlob);
-
 			if (cropResult?.imageBlob) {
 				formData.append('image', cropResult.imageBlob);
 			}
@@ -51,19 +55,16 @@
 			const message = event.form.message;
 			if (message) handleMessae(message);
 
-			if (message?.type === 'success') {
+			if (message?.type === 'success' || auditMode === 'delete') {
 				resetFields();
 				modifyDialogStates?.open.set(false);
 				imageDialogStates?.open.set(false);
 			}
 		}
 	});
-	setContext('productForm', productForm);
 
-	// Form states
-	let auditMode: 'create' | 'update' | 'delete' = 'create';
-	let formCreateIndex = 0;
 	let variants: ProductVariantForm[] = $productForm.variants ?? [];
+	setContext('productForm', productForm);
 
 	// Dialog states
 	let modifyDialogStates: DialogStates;
@@ -76,10 +77,50 @@
 	let imageCropMap: { origin: Point; zoom: number } = { origin: { x: 0, y: 0 }, zoom: 1 };
 	let cropResult: { imageBlob: Blob; imageURI: string } | null;
 
+	// Review states
+	let reviews: UserReview[] = [];
+	let reviewDialogStates: DialogStates;
+	let reviewsLoading = false;
+	let reviewsPage = 1;
+	let reviewsTotalPage = 0;
+	async function fetchReviews(id: string, clear = false) {
+		const limit = 10;
+		reviewsLoading = true;
+
+		if (clear) {
+			reviews = [];
+			reviewsPage = 1;
+			reviewsTotalPage = 0;
+		}
+
+		reviewDialogStates.open.set(true);
+
+		try {
+			const res = await fetch(
+				`/api/products/${id}/reviews?limit=5&offset=${limit * (reviewsPage - 1)}`
+			);
+			const data = (await res.json()) as Paginated<UserReview>;
+
+			if (data.total === 0) {
+				reviewsLoading = false;
+				return;
+			}
+
+			reviews = [...reviews, ...data.items];
+			reviewsTotalPage = data.pages;
+			reviewsPage++;
+			reviewDialogStates.open.set(true);
+		} catch (error) {
+			//
+		}
+		reviewsLoading = false;
+	}
+
 	function resetFields() {
 		reset();
 		discardImage();
 		formCreateIndex = 0;
+		variants = [];
 		auditMode = 'create';
 	}
 
@@ -213,6 +254,14 @@
 			);
 		}
 	}
+
+	function handlePageChange(e: CustomEvent<{ curr: number; next: number }>) {
+		if (browser) {
+			const currentUrl = new URL($page.url);
+			currentUrl.searchParams.set('page', e.detail.next.toString());
+			goto(currentUrl.toString(), { replaceState: true });
+		}
+	}
 </script>
 
 <!-- Form dialog -->
@@ -312,7 +361,7 @@
 				</form>
 			{:else if formCreateIndex === 1}
 				<div class="flex w-full flex-col space-y-3">
-					<ul class="space-y-2 overflow-y-auto">
+					<ul class="custom-scrollbar max-h-[420px] space-y-2 overflow-y-auto">
 						{#each variants as variant, i}
 							<li>
 								<VariantForm bind:details={variant} index={i} on:remove={() => removeVariant(i)} />
@@ -383,6 +432,31 @@
 	/>
 </Dialog>
 
+<!-- Product Reviews -->
+<Dialog bind:states={reviewDialogStates}>
+	<svelte:fragment slot="title">Reviews</svelte:fragment>
+	<div class="mt-3 max-h-96 space-y-2.5">
+		{#each reviews as review}
+			<UserComment data={review} />
+		{:else}
+			{#if reviewsLoading}
+				<div class="grid place-content-center">
+					<Icon class="animate-spin text-4xl" icon="mdi:loading" />
+				</div>
+			{:else}
+				<p class="text-center py-4">No reviews yet</p>
+			{/if}
+		{/each}
+	</div>
+	{#if reviewsPage < reviewsTotalPage}
+		<Button loading={reviewsLoading} variant="ghost" color="neutral">
+			{#if !reviewsLoading}
+				Load more
+			{/if}
+		</Button>
+	{/if}
+</Dialog>
+
 <!-- Page -->
 <div class="flex flex-1 flex-col gap-3">
 	<div class="card flex flex-1 flex-col overflow-auto">
@@ -405,20 +479,36 @@
 					<th class="w-0"></th>
 					<th class="text-left">Name</th>
 					<th>Price</th>
+					<th>Rating</th>
+					<th>Reviews</th>
+					<th>Sold</th>
 					<th>Category</th>
 					<th>Date Added</th>
-					<th class="w-auto">Last Update</th>
 					<th class="w-auto px-2">Actions</th>
 				</thead>
 				<tbody class="text-center">
-					{#each products.items as product, i}
+					{#each products.items as product, i (product.id)}
 						<tr class="odd:bg-black/[0.025]">
 							<td class="w-0">{i + 1}</td>
 							<td class="max-w-[28ch] truncate text-left">{product.name}</td>
 							<td>{formatter.format(product.price)}</td>
-							<td class="max-w-[16ch] truncate">{product.category?.name}</td>
+							<td>
+								<div class="grid place-content-center">
+									<Tooltip tip={`Average: ${product.avgRating ?? 0}`}>
+										<RatingIndicator rating={Math.floor(product.avgRating ?? 0)} />
+									</Tooltip>
+								</div>
+							</td>
+							<td>
+								<Button color="neutral" size="sm" on:click={() => fetchReviews(product.id, true)}>
+									View ({product.reviewCount?.toLocaleString() ?? 0})
+								</Button>
+							</td>
+							<td>
+								{product.sold ?? 0}
+							</td>
+							<td class="max-w-[16ch] truncate">{product.category?.name ?? ''}</td>
 							<td>{new Date(product.createdAt).toLocaleDateString()}</td>
-							<td>{new Date(product.updatedAt).toLocaleDateString()}</td>
 							<td class="w-0">
 								<div class="mx-auto w-max">
 									<Button
@@ -453,7 +543,7 @@
 			</table>
 		</div>
 	</div>
-	<Pagination total={products.total} perPage={products.limit} />
+	<Pagination total={products.total} perPage={products.limit} on:pageChange={handlePageChange} />
 </div>
 
 <style lang="postcss">

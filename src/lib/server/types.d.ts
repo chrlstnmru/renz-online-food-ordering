@@ -6,8 +6,11 @@ export type Product = Omit<
 	ProductSelect & {
 		category: { id: string; name: string } | null;
 		variants: { id: string; name: string; price: number; description: string | null }[];
+		avgRating?: number;
+		sold?: number;
 		reviews?: UserReview[];
 		ratings?: RatingsData;
+		reviewCount?: number;
 	},
 	'categoryId'
 >;
@@ -97,4 +100,13 @@ export type UserOrder = Order & {
 export type AdminUser = {
 	id: string;
 	username: string;
+};
+
+export type BestSeller = {
+	id: string;
+	name: string;
+	image: string | null;
+	price: number;
+	avegrage: number;
+	sold: number;
 };

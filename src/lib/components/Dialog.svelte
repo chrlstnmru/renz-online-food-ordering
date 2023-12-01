@@ -18,10 +18,8 @@
 		onOpenChange: ({ curr, next }) => {
 			if (next === false) {
 				if (keepOpen) {
-					console.log('dialog keepOpen');
 					return true;
 				}
-				console.log('dialog closed');
 				dispatch('close');
 			}
 

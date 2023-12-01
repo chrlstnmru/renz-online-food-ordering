@@ -12,17 +12,16 @@ import { generateID, stringEmpty } from '$lib/utils/helpers';
 import { z } from 'zod';
 import { groupEditedVariants } from '$lib/server/helpers';
 import type { Paginated, Product } from '$lib/server/types';
-import { uploadImage } from '$lib/server/supabase';
+import { deleteImage, uploadImage } from '$lib/server/supabase';
 
 export const load: PageServerLoad = async ({ url, fetch }) => {
 	const categoryForm = superValidate(categoryFormSchema);
 	const productForm = superValidate(productFormSchema);
 
 	async function getProducts() {
-		const result = (await fetch('/api/products' + url.search).then((res) =>
+		const result = (await fetch('/api/products' + url.search + '&limit=12').then((res) =>
 			res.json()
 		)) as Paginated<Product>;
-		console.log(result);
 
 		return result;
 	}
@@ -104,8 +103,6 @@ export const actions: Actions = {
 		const form = await superValidate(formData, productFormSchema.omit({ id: true }));
 		const image = formData.get('image') as File;
 
-		console.log(form);
-
 		if (!form.valid) {
 			return fail(400, { form });
 		}
@@ -170,8 +167,6 @@ export const actions: Actions = {
 						form.data.variants!
 					);
 
-					console.log(create, update, remove);
-
 					if (create.length > 0) {
 						await Promise.all(
 							create.map(async (variant) => await db.insert(variantsTable).values(variant))
@@ -206,7 +201,7 @@ export const actions: Actions = {
 					name,
 					categoryId: stringEmpty(categoryId as string) ? null : categoryId,
 					price,
-					updatedAt: sql`NOW()`
+					updatedAt: sql`now()`
 				})
 				.where(eq(productsTable.id, id));
 
@@ -225,15 +220,11 @@ export const actions: Actions = {
 
 		let deletedProduct: any;
 		try {
+			await deleteImage(form.data.id);
 			deletedProduct = await db
 				.delete(productsTable)
 				.where(eq(productsTable.id, form.data.id))
 				.returning({ name: productsTable.name, image: productsTable.image });
-
-			const imageId = deletedProduct[0].image.match(/\/([^\/]+)\/$/)[1] as string;
-			console.log(imageId);
-
-			// TODO: Delete image from db
 		} catch (error) {
 			console.error(error);
 			return message(form, { type: 'error', content: 'Something went wrong.' }, { status: 500 });

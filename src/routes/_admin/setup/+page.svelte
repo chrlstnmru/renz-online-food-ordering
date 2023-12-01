@@ -7,7 +7,7 @@
 	export let data: PageData;
 	const setupForm = data.setupForm;
 
-	const { form, errors, enhance } = superForm(setupForm, {
+	const { form, errors, enhance, submitting } = superForm(setupForm, {
 		clearOnSubmit: 'errors-and-message',
 		multipleSubmits: 'prevent'
 	});
@@ -66,7 +66,9 @@
 				error={$errors.passwordConfirm?.[0]}
 				bind:value={$form.passwordConfirm}
 			/>
-			<Button class="mt-4 w-full justify-center" size="lg" type="submit">Submit</Button>
+			<Button class="mt-4 w-full justify-center" size="lg" type="submit" loading={$submitting}>
+				Submit
+			</Button>
 		</form>
 	</div>
 </main>

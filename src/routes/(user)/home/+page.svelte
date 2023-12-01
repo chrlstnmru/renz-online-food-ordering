@@ -4,9 +4,19 @@
 	import Pagination from '$lib/components/Pagination.svelte';
 	import ItemFilter from './_components/ItemFilter.svelte';
 	import WithBasketSummary from '../_components/WithBasketSummary.svelte';
+	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
-	$: console.log('home', data.products);
+
+	function handlePageChange(e: CustomEvent<{ curr: number; next: number }>) {
+		if (browser) {
+			const currentUrl = new URL($page.url);
+			currentUrl.searchParams.set('page', e.detail.next.toString());
+			goto(currentUrl.toString(), { replaceState: true });
+		}
+	}
 </script>
 
 <svelte:head>
@@ -33,6 +43,7 @@
 			total={data.products.total}
 			perPage={data.products.limit}
 			defaultPage={data.products.page}
+			on:pageChange={handlePageChange}
 		/>
 	</div>
 </WithBasketSummary>

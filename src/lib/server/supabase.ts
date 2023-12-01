@@ -15,3 +15,13 @@ export async function uploadImage(name: string, file: Blob | File | Buffer) {
 
 	return Promise.resolve(data.path);
 }
+
+export async function deleteImage(id: string) {
+	const { data, error } = await supabaseService.storage.from('assets').remove([`${id}`]);
+
+	if (error) {
+		return Promise.reject(false);
+	}
+
+	return Promise.resolve(true);
+}

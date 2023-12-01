@@ -46,8 +46,8 @@
 </script>
 
 <div class="flex items-center text-neutral-500">
-	<span>Showing items {$range.start + 1} - {$range.end}</span>
-	<nav class="ml-auto flex items-center gap-4" use:melt={$root}>
+	<span class="xs:hidden">Showing items {$range.start + 1} - {$range.end}</span>
+	<nav class="xs:mx-auto ml-auto flex items-center gap-4" use:melt={$root}>
 		<Button
 			{...$prevButton}
 			action={$prevButton.action}

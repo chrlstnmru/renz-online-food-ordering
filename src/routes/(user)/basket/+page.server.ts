@@ -91,7 +91,6 @@ export const actions: Actions = {
 	updateQuantity: async ({ request }) => {
 		const data = await request.formData();
 		const form = updateBasketItemQuantity.safeParse(data);
-		console.log(form);
 
 		if (!form.success) return fail(400, { message: 'Invalid form data' });
 
@@ -133,7 +132,6 @@ export const actions: Actions = {
 		}
 
 		const form = await superValidate(request, checkoutFormSchema);
-		console.log(form);
 
 		if (!form.valid) {
 			return fail(400, { form });

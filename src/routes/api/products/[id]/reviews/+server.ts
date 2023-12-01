@@ -34,10 +34,15 @@ export const GET: RequestHandler = async ({ params, url }) => {
 			.offset(offset);
 
 		if (query.length === 0) {
-			const notFound = new Error();
-			notFound.name = 'NO_REVIEW';
-			notFound.message = 'No reviews found.';
-			throw notFound;
+			const result: Paginated<UserReview> = {
+				items: [],
+				total: 0,
+				limit: limit,
+				page: Math.floor(offset / limit) + 1,
+				pages: 1
+			};
+
+			return new Response(JSON.stringify(result));
 		}
 
 		items = query.map((item) => {
@@ -46,7 +51,7 @@ export const GET: RequestHandler = async ({ params, url }) => {
 		});
 	} catch (error) {
 		if (error instanceof Error) {
-			if (error.name === 'NO_PRODUCT') {
+			if (error.name === 'NO_REVIEW') {
 				return new Response(JSON.stringify({ error: error.message }), { status: 404 });
 			}
 		}

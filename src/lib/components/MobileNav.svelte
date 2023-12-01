@@ -68,7 +68,7 @@
 				<ul class="space-y-4">
 					{#each navlinks as { name, href }}
 						<li class="text-center text-xl">
-							<a href={href}>{name}</a>
+							<a href={href} on:click={() => open.set(false)}>{name}</a>
 						</li>
 					{/each}
 				</ul>

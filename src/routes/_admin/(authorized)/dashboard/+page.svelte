@@ -11,6 +11,6 @@
 	<Statistics data={data.dataOverview} />
 	<div class="mt-4 flex flex-1 gap-4 overflow-y-auto">
 		<RecentOrders data={data.recentOrders} />
-		<TopSellers />
+		<TopSellers data={data.bestSelling} />
 	</div>
 </div>

@@ -3,7 +3,9 @@ import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ url, fetch }) => {
 	async function getProducts() {
-		const result = (await fetch('/api/products' + url.search).then((res) =>
+		const searchParams = url.searchParams;
+		searchParams.set('limit', searchParams.get('limit') || '12');
+		const result = (await fetch('/api/products?' + searchParams.toString()).then((res) =>
 			res.json()
 		)) as Paginated<Product>;
 
