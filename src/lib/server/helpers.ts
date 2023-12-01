@@ -88,7 +88,7 @@ export function withPagination<T extends AnyPgSelect>(
 	page: number = 1,
 	pageSize: number = 10
 ) {
-	return (qb.limit(pageSize) as T).offset((page - 1) * pageSize + 1);
+	return (qb.limit(pageSize + 1) as T).offset((page - 1) * pageSize);
 }
 
 export function withSearch<T extends AnyPgSelect>(

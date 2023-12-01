@@ -19,7 +19,8 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
 	const productForm = superValidate(productFormSchema);
 
 	async function getProducts() {
-		const result = (await fetch('/api/products' + url.search + '&limit=12').then((res) =>
+		url.searchParams.set('limit', '12');
+		const result = (await fetch('/api/products' + url.search).then((res) =>
 			res.json()
 		)) as Paginated<Product>;
 

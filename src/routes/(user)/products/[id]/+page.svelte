@@ -19,6 +19,7 @@
 	import type { DialogStates } from '@melt-ui/svelte';
 	import Payment from '../../_components/Payment.svelte';
 	import Login from '$lib/components/Login.svelte';
+	import { dev } from '$app/environment';
 
 	export let data: PageData;
 
@@ -156,6 +157,14 @@
 
 <svelte:head>
 	<title>{data.product.name}</title>
+
+	<meta name="description" content={data.product.name} />
+	<meta name="keywords" content={`RENZ Online Food Ordering, ${data.product.name}`} />
+
+	<meta property="og:title" content={data.product.name} />
+	<meta property="og:description" content={data.product.name} />
+	<meta property="og:image" content={data.product.image} />
+	<meta property="og:url" content="{dev ? 'http://' : 'https://'}{$page.url.host}" />
 </svelte:head>
 
 <Dialog bind:states={orderNowDialogStates} keepOpen={$orderSubmitting}>

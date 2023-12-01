@@ -94,6 +94,8 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	const total = distinctIds?.length;
 
+	console.log(total);
+
 	if (page > total) {
 		return new Response(
 			JSON.stringify({ items: [], page: page, pages: 0, limit: limit, total: 0 }),
