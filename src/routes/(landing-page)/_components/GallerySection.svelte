@@ -3,6 +3,7 @@
 	import RatingIndicator from '$lib/components/RatingIndicator.svelte';
 	import type { BestSeller } from '$lib/server/types';
 	import { formatter } from '$lib/utils/helpers';
+	import ProductCard from './ProductCard.svelte';
 
 	export let data: BestSeller[];
 </script>
@@ -17,30 +18,8 @@
 		<div class="left-0 top-0 my-8 max-w-[80%] place-items-center overflow-x-auto sm:max-w-full">
 			<Carousel>
 				{#each data as item (item.id)}
-					<a href="/products/{item.id}">
-						<article class="stack card overflow-hidden p-0">
-							<img class="h-[500px] w-[350px] select-none object-cover" src={item.image} alt="" />
-							<div class="flex flex-col-reverse">
-								<div class="mt-auto bg-white px-6 py-4">
-									<h3 class="text-2xl font-semibold text-neutral-800 drop-shadow">{item.name}</h3>
-									<div class="mt-2 flex items-center justify-between">
-										<p class="flex items-center gap-1">
-											<RatingIndicator rating={Math.floor(item.avegrage)} />
-											({item.avegrage && item.avegrage !== 0 ? item.avegrage.toFixed(1) : 0})
-										</p>
-										<p class="opacity-80">{item.sold ?? 0} sold</p>
-									</div>
-								</div>
-								<p
-									class="mt-8 grid self-end bg-amber-600 px-5 py-3 text-right text-sm uppercase text-white shadow"
-								>
-									Starts at
-									<span class="text-3xl font-semibold leading-6"
-										>{formatter.format(item.price)}</span
-									>
-								</p>
-							</div>
-						</article>
+					<a class="group" href="/products/{item.id}">
+						<ProductCard data={item} />
 					</a>
 				{/each}
 			</Carousel>

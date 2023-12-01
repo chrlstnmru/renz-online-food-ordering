@@ -177,6 +177,17 @@
 
 		applyFilters();
 	}
+
+	function getStatus(status: string) {
+		if (status === 'rejected') return 'rejected';
+		if (status === 'cancelled') return 'cancelled';
+		if (status === 'delivered') return 'delivered';
+		return status;
+	}
+
+	function isRejectCancelled(status: string) {
+		return status === 'rejected' || status === 'cancelled';
+	}
 </script>
 
 <Dialog bind:states={dialogStates} on:close={reset}>
@@ -303,8 +314,8 @@
 					<td class="max-w-[32ch] truncate text-left">{item.recipient}</td>
 					<td class="">
 						<span
-							data-status={item.status === 'rejected'
-								? 'rejected'
+							data-status={isRejectCancelled(item.status)
+								? item.status
 								: item.verified
 								  ? 'verified'
 								  : 'unverified'}
@@ -352,7 +363,8 @@
 									size="sm"
 									disabled={item.verified ||
 										item.status === 'delivered' ||
-										item.status === 'rejected'}
+										item.status === 'rejected' ||
+										item.status === 'cancelled'}
 									on:click={() => openAlert(i)}
 								>
 									reject

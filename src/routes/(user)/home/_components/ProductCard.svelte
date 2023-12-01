@@ -26,6 +26,7 @@
 			src={data.image}
 			alt="{data.name.toLowerCase().replace(' ', '-')}-thumbnail"
 			loading="lazy"
+			decoding="async"
 		/>
 		<p
 			class="ml-auto mr-4 mt-4 h-max w-max rounded-full bg-black/80 px-3 py-1 text-lg font-medium text-white"
