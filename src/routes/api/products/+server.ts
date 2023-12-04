@@ -2,7 +2,7 @@ import { db } from '$lib/server/db';
 import { categoryTable, productsTable, variantsTable } from '$lib/server/db/schema/ProductSchema';
 import { asc, eq, getTableColumns, sql, type PromiseOf, and } from 'drizzle-orm';
 import type { RequestHandler } from './$types';
-import type { Paginated, Product } from '$lib/server/types';
+import type { Paginated, Product, ProductVariant } from '$lib/server/types';
 import { withPagination, withSearch } from '$lib/server/helpers';
 import { PUBLIC_ASSETS_URL } from '$env/static/public';
 import { orderItemsTable, ordersTable, reviewsTable } from '$lib/server/db/schema/UserSchema';
@@ -49,17 +49,24 @@ export const GET: RequestHandler = async ({ url }) => {
 		.as('solds');
 
 	// Apply filters
-	const { id, ...columns } = getTableColumns(productsTable);
+	const { id, name, ...columns } = getTableColumns(productsTable);
 	const selectQuery = db
 		.select({
 			...columns,
 			id: sql<string>`${id}`.as('productId'),
+			name: sql<string>`${name}`.as('productName'),
 			categoryId: categoryTable.id,
 			categoryName: categoryTable.name,
-			variantId: variantsTable.id,
-			variantName: variantsTable.name,
-			variantPrice: variantsTable.price,
-			variantDescription: variantsTable.description,
+			variantId: sql<Array<string>>`array_agg(coalesce(${variantsTable.id}, ''))`.as('variantId'),
+			variantName: sql<Array<string>>`array_agg(coalesce(${variantsTable.name}, ''))`.as(
+				'variantName'
+			),
+			variantPrice: sql<Array<number>>`array_agg(coalesce(${variantsTable.price}, 0))`.as(
+				'variantPrice'
+			),
+			variantDescription: sql<
+				Array<string>
+			>`array_agg(coalesce(${variantsTable.description}, ''))`.as('variantDesc'),
 			avgRating: ratingsQuery.avgRating,
 			sold: soldsQuery.sold,
 			reviewCount: totalCommentsQuery.total
@@ -70,7 +77,14 @@ export const GET: RequestHandler = async ({ url }) => {
 		.leftJoin(ratingsQuery, eq(ratingsQuery.productId, productsTable.id))
 		.leftJoin(totalCommentsQuery, eq(totalCommentsQuery.productId, productsTable.id))
 		.leftJoin(soldsQuery, eq(soldsQuery.productId, productsTable.id))
-		.orderBy(asc(productsTable.createdAt))
+		.groupBy(
+			productsTable.id,
+			categoryTable.id,
+			ratingsQuery.id,
+			soldsQuery.sold,
+			totalCommentsQuery.total,
+			ratingsQuery.avgRating
+		)
 		.$dynamic();
 
 	let query = withSearch(selectQuery, `%`, [productsTable.name]);
@@ -90,9 +104,12 @@ export const GET: RequestHandler = async ({ url }) => {
 
 	// Return empty if page is out of bounds
 	const filterQuery = query.as('filterQuery');
-	const distinctIds = await db.selectDistinct({ id: filterQuery.id }).from(filterQuery);
+	const distinctIds = await db
+		.selectDistinct({ id: filterQuery.id, name: filterQuery.name })
+		.from(filterQuery);
 
 	const total = distinctIds?.length;
+	console.log(total);
 
 	if (page > total) {
 		return new Response(
@@ -106,7 +123,7 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 
 	// Assemble Results
-	const queryResult = await withPagination(query, page, limit);
+	const queryResult = await withPagination(query.orderBy(productsTable.createdAt), page, limit);
 
 	const products = Array.from(
 		queryResult
@@ -125,13 +142,17 @@ export const GET: RequestHandler = async ({ url }) => {
 				}
 
 				const current = acc.get(item.id)!;
-				if (item.variantId) {
-					current.variants.push({
-						id: item.variantId,
-						name: item.variantName!,
-						price: item.variantPrice!,
-						description: item.variantDescription!
-					});
+				if (item.variantId.length > 0) {
+					current.variants = item.variantId.reduce((acc, id, i) => {
+						if (id === '') return acc;
+						acc.push({
+							id: id,
+							name: item.variantName[i],
+							price: item.variantPrice[i],
+							description: item.variantDescription[i]
+						});
+						return acc;
+					}, new Array<ProductVariant>());
 				}
 
 				return acc;

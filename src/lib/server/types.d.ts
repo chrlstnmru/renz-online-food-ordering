@@ -5,7 +5,7 @@ export type SuperformMessage = { status: 'error' | 'success' | 'warning'; conten
 export type Product = Omit<
 	ProductSelect & {
 		category: { id: string; name: string } | null;
-		variants: { id: string; name: string; price: number; description: string | null }[];
+		variants: ProductVariant[];
 		avgRating?: number;
 		sold?: number;
 		reviews?: UserReview[];
@@ -14,6 +14,13 @@ export type Product = Omit<
 	},
 	'categoryId'
 >;
+
+export type ProductVariant = {
+	id: string;
+	name: string;
+	price: number;
+	description: string | null;
+};
 
 export type Category = { id: string; name: string };
 
