@@ -18,7 +18,7 @@
 
 	type $$Props = SvelteHTMLElements['input'] & {
 		label?: string;
-		type?: 'text' | 'password' | 'email' | 'number';
+		type?: 'text' | 'password' | 'email' | 'number' | 'tel';
 		error?: string;
 		hideError?: boolean;
 		value?: string | number | null;
@@ -33,7 +33,7 @@
 	$: ({ class: className, ...rest } = $$restProps);
 </script>
 
-<div>
+<div class="w-full">
 	<label class="grid">
 		<span>{label}</span>
 		{#if type === 'text'}
@@ -61,6 +61,13 @@
 			<input
 				class={inputVariants({ ...$$restProps, error: !!error })}
 				type="number"
+				bind:value={value}
+				{...rest}
+			/>
+		{:else if type === 'tel'}
+			<input
+				class={inputVariants({ ...$$restProps, error: !!error })}
+				type="tel"
 				bind:value={value}
 				{...rest}
 			/>

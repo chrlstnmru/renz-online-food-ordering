@@ -178,13 +178,6 @@
 		applyFilters();
 	}
 
-	function getStatus(status: string) {
-		if (status === 'rejected') return 'rejected';
-		if (status === 'cancelled') return 'cancelled';
-		if (status === 'delivered') return 'delivered';
-		return status;
-	}
-
 	function isRejectCancelled(status: string) {
 		return status === 'rejected' || status === 'cancelled';
 	}

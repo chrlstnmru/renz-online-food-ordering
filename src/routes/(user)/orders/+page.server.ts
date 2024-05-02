@@ -1,33 +1,48 @@
 import { db } from '$lib/server/db';
-import { orderItemsTable, ordersTable } from '$lib/server/db/schema/UserSchema';
-import { eq, sql } from 'drizzle-orm';
+import { customerOrderItemsTable, customerOrdersTable } from '$lib/server/db/schema/UserSchema';
+import { and, eq, sql } from 'drizzle-orm';
 import type { Actions, PageServerLoad } from './$types';
 import type { Order } from '$lib/server/types';
 import { message, superValidate } from 'sveltekit-superforms/client';
 import { cancelOrderFormSchema } from '$lib/server/validation';
 
-export const load: PageServerLoad = async ({ locals: { session } }) => {
+export const load: PageServerLoad = async ({ locals: { session }, url }) => {
+	const userEmail = url.searchParams.get('email');
+	const orderId = url.searchParams.get('orderId');
 	const cancelOrderForm = superValidate(cancelOrderFormSchema);
+
 	async function getOrders() {
-		// query orders
-		const data = await db
+		const query = db
 			.select({
-				id: ordersTable.id,
+				id: customerOrdersTable.id,
 				description: sql<string>`
-				concat(${orderItemsTable.quantity},'x ') ||
-				concat(${orderItemsTable.productName},' (') ||
-				concat(${orderItemsTable.variantName},')')
-				`,
-				total: orderItemsTable.total,
-				rejectReason: ordersTable.rejectReason,
-				status: ordersTable.status,
-				verified: ordersTable.verified,
-				createdAt: ordersTable.createdAt,
-				updatedAt: ordersTable.updatedAt
+					concat(${customerOrderItemsTable.quantity},'x ') ||
+					concat(${customerOrderItemsTable.productName},' (') ||
+					concat(${customerOrderItemsTable.variantName},')')
+					`,
+				total: customerOrderItemsTable.total,
+				rejectReason: customerOrdersTable.rejectReason,
+				status: customerOrdersTable.status,
+				verified: customerOrdersTable.verified,
+				createdAt: customerOrdersTable.createdAt,
+				updatedAt: customerOrdersTable.updatedAt
 			})
-			.from(ordersTable)
-			.innerJoin(orderItemsTable, eq(ordersTable.id, orderItemsTable.orderId))
-			.where(eq(ordersTable.userId, session!.user.userId));
+			.from(customerOrdersTable)
+			.innerJoin(
+				customerOrderItemsTable,
+				eq(customerOrdersTable.id, customerOrderItemsTable.orderId)
+			)
+			.$dynamic();
+
+		const data = session
+			? await query.where(eq(customerOrdersTable.userId, session.user.userId))
+			: userEmail && orderId
+			  ? await query.where(
+						and(eq(customerOrdersTable.email, userEmail), eq(customerOrdersTable.id, orderId))
+			    )
+			  : [];
+
+		console.log(data);
 
 		// reduce data
 		const reduced = data
@@ -46,7 +61,7 @@ export const load: PageServerLoad = async ({ locals: { session } }) => {
 		const result: Order[] = Array.from(reduced);
 		return result;
 	}
-	return { cancelOrderForm, orders: getOrders() };
+	return { cancelOrderForm, orders: await getOrders() };
 };
 
 export const actions: Actions = {
@@ -59,9 +74,9 @@ export const actions: Actions = {
 
 		try {
 			const [currentStatus] = await db
-				.selectDistinct({ status: ordersTable.status })
-				.from(ordersTable)
-				.where(eq(ordersTable.id, form.data.orderId))
+				.selectDistinct({ status: customerOrdersTable.status })
+				.from(customerOrdersTable)
+				.where(eq(customerOrdersTable.id, form.data.orderId))
 				.limit(1);
 			if (currentStatus.status === 'rejected' || currentStatus.status === 'cancelled') {
 				return message(form, { type: 'error', content: 'Order does not exist.' });
@@ -72,9 +87,9 @@ export const actions: Actions = {
 				});
 			}
 			await db
-				.update(ordersTable)
+				.update(customerOrdersTable)
 				.set({ status: 'cancelled' })
-				.where(eq(ordersTable.id, form.data.orderId));
+				.where(eq(customerOrdersTable.id, form.data.orderId));
 		} catch (error) {
 			console.error(error);
 			return message(form, { type: 'error', content: 'Something went wrong.' });

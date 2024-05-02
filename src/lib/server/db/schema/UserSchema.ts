@@ -4,9 +4,7 @@ import {
 	doublePrecision,
 	foreignKey,
 	integer,
-	pgSchema,
 	pgTable,
-	pgTableCreator,
 	text,
 	timestamp,
 	unique,
@@ -14,11 +12,46 @@ import {
 } from 'drizzle-orm/pg-core';
 import { productsTable, variantsTable } from './ProductSchema';
 
+export const customerOrdersTable = pgTable('customer_orders', {
+	id: varchar('id', { length: 27 }).primaryKey().notNull(),
+	firstName: varchar('first_name', { length: 50 }).notNull(),
+	lastName: varchar('last_name', { length: 50 }).notNull(),
+	middleName: varchar('middle_name', { length: 50 }),
+	email: varchar('email', { length: 50 }).notNull(),
+	phone: varchar('phone', { length: 20 }).notNull(),
+	address: varchar('address', { length: 255 }).notNull(),
+	referenceNo: varchar('refno', { length: 20 }).notNull(),
+	verified: boolean('verified').default(false).notNull(),
+	status: varchar('status', {
+		length: 20,
+		enum: ['waiting', 'preparing', 'delivering', 'delivered', 'cancelled', 'rejected']
+	})
+		.default('waiting')
+		.notNull(),
+	userId: varchar('user_id', { length: 27 }).references(() => usersTable.id),
+	rejectReason: text('reject_reason'),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
+export const customerOrderItemsTable = pgTable('customer_order_items', {
+	id: varchar('id', { length: 27 }).primaryKey().notNull(),
+	orderId: varchar('order_id', { length: 27 })
+		.references(() => customerOrdersTable.id, { onDelete: 'cascade' })
+		.notNull(),
+	productName: varchar('product_name', { length: 255 }).notNull(),
+	variantName: varchar('variant_name', { length: 255 }),
+	quantity: integer('quantity').notNull(),
+	total: doublePrecision('total').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+});
+
 export const ordersTable = pgTable('orders', {
 	id: varchar('id', { length: 27 }).primaryKey().notNull(),
-	userId: varchar('user_id', { length: 27 })
-		.references(() => usersTable.id, { onDelete: 'cascade' })
-		.notNull(),
+	userId: varchar('user_id', { length: 27 }).references(() => usersTable.id, {
+		onDelete: 'cascade'
+	}),
 	refno: varchar('refno', { length: 20 }).notNull(),
 	verified: boolean('verified').default(false).notNull(),
 	status: varchar('status', {

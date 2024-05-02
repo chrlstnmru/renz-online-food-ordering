@@ -32,6 +32,8 @@ declare global {
 			last_name?: string;
 			email?: string;
 			image?: string;
+			address?: string;
+			phone?: string;
 			onboarded?: boolean;
 		}>;
 		type DatabaseSessionAttributes = {};

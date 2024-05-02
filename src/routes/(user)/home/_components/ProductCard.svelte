@@ -20,7 +20,7 @@
 			<p>{data.sold ?? 0} sold</p>
 		</div>
 	</div>
-	<div class="stack h-full w-full overflow-hidden rounded-lg">
+	<div class="stack aspect-square w-full overflow-hidden rounded-lg bg-zinc-400">
 		<img
 			class="object-cover"
 			src={data.image}

@@ -1,14 +1,13 @@
 import { db } from '$lib/server/db';
-import { orderItemsTable, ordersTable, usersTable } from '$lib/server/db/schema/UserSchema';
-import { and, desc, eq, getTableColumns, ilike, inArray, or, sql } from 'drizzle-orm';
-import type { Actions, PageServerLoad } from './$types';
-import type { Paginated, UserOrder } from '$lib/server/types';
+import { customerOrderItemsTable, customerOrdersTable } from '$lib/server/db/schema/UserSchema';
 import { withPagination, withSearch } from '$lib/server/helpers';
-import { message, superValidate } from 'sveltekit-superforms/server';
+import type { Paginated, UserOrder } from '$lib/server/types';
 import { rejectOrderFormSchema, updateOrderFormSchema } from '$lib/server/validation';
-import type { Column } from 'postgres';
-import type { AnyPgColumn } from 'drizzle-orm/pg-core';
 import { fail } from '@sveltejs/kit';
+import { and, desc, eq, ilike, inArray, or, sql } from 'drizzle-orm';
+import { message, superValidate } from 'sveltekit-superforms/server';
+import type { Actions, PageServerLoad } from './$types';
+
 export const load: PageServerLoad = async ({ url }) => {
 	const orderForm = superValidate(updateOrderFormSchema);
 	const rejectForm = superValidate(rejectOrderFormSchema);
@@ -20,34 +19,34 @@ export const load: PageServerLoad = async ({ url }) => {
 	const statusFilter: string[] = JSON.parse(url.searchParams.get('statusFilter') ?? '[]');
 
 	async function getOrders() {
-		const subquery = db.$with('orders').as(
-			db
-				.selectDistinct({
-					id: ordersTable.id,
-					refno: ordersTable.refno,
-					recipient: sql<string>`concat(${usersTable.firstName},
-					case when ${usersTable.middleName} is not null then concat(' ', ${usersTable.middleName}, ' ') else ' '  end,
-					${usersTable.lastName})`.as('recipient'),
-					description: sql<string>`
-						concat(${orderItemsTable.quantity},'x ') ||
-						concat(${orderItemsTable.productName},' (') ||
-						concat(${orderItemsTable.variantName},')')
+		const subquery = db
+			.selectDistinct({
+				id: customerOrdersTable.id,
+				refno: customerOrdersTable.referenceNo,
+				recipient: sql<string>`concat(${customerOrdersTable.firstName},
+					case when ${customerOrdersTable.middleName} is not null then concat(' ', ${customerOrdersTable.middleName}, ' ') else ' '  end,
+					${customerOrdersTable.lastName})`.as('recipient'),
+				description: sql<string>`
+						concat(${customerOrderItemsTable.quantity},'x ') ||
+						concat(${customerOrderItemsTable.productName},' (') ||
+						concat(${customerOrderItemsTable.variantName},')')
 					`.as('description'),
-					total: orderItemsTable.total,
-					verified: ordersTable.verified,
-					status: ordersTable.status,
-					rejectReason: ordersTable.rejectReason,
-					createdAt: ordersTable.createdAt,
-					updatedAt: ordersTable.updatedAt
-				})
-				.from(ordersTable)
-				.innerJoin(usersTable, eq(ordersTable.userId, usersTable.id))
-				.innerJoin(orderItemsTable, eq(ordersTable.id, orderItemsTable.orderId))
-				.orderBy(desc(ordersTable.updatedAt))
-		);
-		const orderQuery = db.with(subquery).select().from(subquery).$dynamic();
+				total: customerOrderItemsTable.total,
+				verified: customerOrdersTable.verified,
+				status: customerOrdersTable.status,
+				rejectReason: customerOrdersTable.rejectReason,
+				createdAt: customerOrdersTable.createdAt,
+				updatedAt: customerOrdersTable.updatedAt
+			})
+			.from(customerOrdersTable)
+			.innerJoin(
+				customerOrderItemsTable,
+				eq(customerOrdersTable.id, customerOrderItemsTable.orderId)
+			)
+			.orderBy(desc(customerOrdersTable.updatedAt));
+		const orderQuery = subquery.$dynamic();
 
-		let query = withSearch(orderQuery, `%`, [ordersTable.id]);
+		let query = withSearch(orderQuery, `%`, [customerOrdersTable.id]);
 
 		const verifiedfilter = paymentFilter.map((f) => {
 			if (f === 'true') return true;
@@ -60,47 +59,47 @@ export const load: PageServerLoad = async ({ url }) => {
 		if (hasStatusFilter && hasVerifiedFilter && search) {
 			query = query.where(
 				and(
-					// @ts-ignore
-					inArray(ordersTable.status, statusFilter),
-					// @ts-ignore
-					inArray(ordersTable.verified, verifiedfilter),
-					// @ts-ignore
-					or(ilike(ordersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
+					// @ts-expect-error any
+					inArray(customerOrdersTable.status, statusFilter),
+					// @ts-expect-error any
+					inArray(customerOrdersTable.verified, verifiedfilter),
+					// @ts-expect-error any
+					or(ilike(customerOrdersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
 				)
 			);
 		} else if (hasStatusFilter && hasVerifiedFilter) {
 			query = query.where(
 				and(
-					// @ts-ignore
-					inArray(ordersTable.status, statusFilter),
-					// @ts-ignore
-					inArray(ordersTable.verified, verifiedfilter)
+					// @ts-expect-error any
+					inArray(customerOrdersTable.status, statusFilter),
+					// @ts-expect-error any
+					inArray(customerOrdersTable.verified, verifiedfilter)
 				)
 			);
 		} else if (hasStatusFilter && search) {
 			query = query.where(
 				and(
-					// @ts-ignore
-					inArray(ordersTable.status, statusFilter),
-					// @ts-ignore
-					or(ilike(ordersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
+					// @ts-expect-error any
+					inArray(customerOrdersTable.status, statusFilter),
+					// @ts-expect-error any
+					or(ilike(customerOrdersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
 				)
 			);
 		} else if (hasVerifiedFilter && search) {
 			query = query.where(
 				and(
-					// @ts-ignore
-					inArray(ordersTable.verified, verifiedfilter),
-					// @ts-ignore
-					or(ilike(ordersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
+					// @ts-expect-error any
+					inArray(customerOrdersTable.verified, verifiedfilter),
+					// @ts-expect-error any
+					or(ilike(customerOrdersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
 				)
 			);
 		} else if (hasVerifiedFilter) {
-			query = withSearch(query, verifiedfilter, [ordersTable.verified]);
+			query = withSearch(query, verifiedfilter, [customerOrdersTable.verified]);
 		} else if (hasStatusFilter) {
-			query = withSearch(query, statusFilter, [ordersTable.status]);
+			query = withSearch(query, statusFilter, [customerOrdersTable.status]);
 		} else if (search) {
-			// @ts-ignore
+			// @ts-expect-error any
 			query = withSearch(query, `%${search}%`, [subquery.recipient, subquery.id]);
 		}
 
@@ -147,7 +146,10 @@ export const actions: Actions = {
 
 		try {
 			const { orderId, status, verified } = form.data;
-			await db.update(ordersTable).set({ status, verified }).where(eq(ordersTable.id, orderId));
+			await db
+				.update(customerOrdersTable)
+				.set({ status, verified })
+				.where(eq(customerOrdersTable.id, orderId));
 		} catch (error) {
 			console.error(error);
 			return message(form, { type: 'error', content: 'Something went wrong.' }, { status: 500 });
@@ -168,9 +170,9 @@ export const actions: Actions = {
 		try {
 			const { orderId } = form.data;
 			await db
-				.update(ordersTable)
+				.update(customerOrdersTable)
 				.set({ status: 'rejected', rejectReason: form.data.reason, updatedAt: sql`now()` })
-				.where(eq(ordersTable.id, orderId));
+				.where(eq(customerOrdersTable.id, orderId));
 		} catch (error) {
 			console.error(error);
 			return message(form, { type: 'error', content: 'Something went wrong.' }, { status: 500 });

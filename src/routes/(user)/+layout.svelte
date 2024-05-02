@@ -3,24 +3,16 @@
 	import Header from './_components/Header.svelte';
 	import type { LayoutData } from './$types';
 	import { onMount, setContext } from 'svelte';
-	import { basketSummaryStore } from '$lib/stores/basketSummaryStore';
 	import { supabaseClient } from '$lib/supabaseClient';
 	import { addToast } from '$lib/components/Toaster.svelte';
 	import { invalidateAll } from '$app/navigation';
+	import { createBasket } from '$lib/stores/basketStore';
 
 	export let data: LayoutData;
 
 	$: setContext('session', data.session);
-	$: total = data.basketSummary
-		.map((item) => {
-			if (!item.id) return 0;
-			if (item.variant) {
-				return item.variant.price * item.quantity;
-			}
-			return item.product.price * item.quantity;
-		})
-		.reduce((a, b) => a + b, 0);
-	$: basketSummaryStore.set({ entries: data.basketSummary, total });
+
+	createBasket(data.session);
 
 	onMount(() => {
 		supabaseClient

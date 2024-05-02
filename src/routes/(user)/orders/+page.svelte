@@ -10,6 +10,8 @@
 	import Icon from '@iconify/svelte';
 	import Dialog from '$lib/components/Dialog.svelte';
 	import type { DialogStates } from '@melt-ui/svelte';
+	import Input from '$lib/components/ui/Input.svelte';
+	import { page } from '$app/stores';
 
 	export let data: PageData;
 
@@ -68,8 +70,25 @@
 
 <WithBasketSummary>
 	<div class="flex flex-1 flex-col gap-3">
-		<div class="card flex-1">
+		<div class="card flex flex-1 flex-col gap-2">
 			<h2 class="text-2xl font-semibold">My Orders</h2>
+			{#if !data.session}
+				<form class="flex items-center justify-end gap-2" action="?" method="GET">
+					<Input
+						label="Email"
+						name="email"
+						value={$page.url.searchParams.get('email')}
+						placeholder="Enter your email..."
+					/>
+					<Input
+						label="Order ID"
+						name="orderId"
+						value={$page.url.searchParams.get('orderId')}
+						placeholder="Enter order id..."
+					/>
+					<Button class="flex-shrink-0" type="submit">Track Order</Button>
+				</form>
+			{/if}
 			{#if data.orders.length > 0}
 				<div class="overflow-x-auto">
 					<table class="w-full">
@@ -124,8 +143,12 @@
 					</table>
 				</div>
 			{:else}
-				<div class="grid h-full place-items-center text-center text-2xl text-neutral-500">
-					You have no orders yet.
+				<div class="grid flex-1 place-items-center text-center text-2xl text-neutral-500">
+					{#if !data.session}
+						<p>No orders found.</p>
+					{:else}
+						<p>You have no orders yet.</p>
+					{/if}
 				</div>
 			{/if}
 		</div>

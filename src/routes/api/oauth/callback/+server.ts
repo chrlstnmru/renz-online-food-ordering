@@ -43,6 +43,7 @@ export const GET: RequestHandler = async ({ url, cookies, locals }) => {
 		userId: user.userId,
 		attributes: {}
 	});
+
 	const sessionCookie = userAuth.createSessionCookie(session);
 	cookies.set(sessionCookie.name, sessionCookie.value, {
 		secure: !dev,

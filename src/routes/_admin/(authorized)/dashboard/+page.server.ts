@@ -1,5 +1,5 @@
 import { db } from '$lib/server/db';
-import { ordersTable, usersTable } from '$lib/server/db/schema/UserSchema';
+import { customerOrdersTable, usersTable } from '$lib/server/db/schema/UserSchema';
 import { and, desc, eq, not, sql } from 'drizzle-orm';
 import type { PageServerLoad } from './$types';
 import { productsTable } from '$lib/server/db/schema/ProductSchema';
@@ -9,13 +9,13 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	async function getData() {
 		const delivered = db
 			.select({ delivered: sql<string>`cast(count(*) as integer)` })
-			.from(ordersTable)
-			.where(eq(ordersTable.status, 'delivered'))
+			.from(customerOrdersTable)
+			.where(eq(customerOrdersTable.status, 'delivered'))
 			.as('delivered');
 		const cancelled = db
 			.select({ cancelled: sql<string>`cast(count(*) as integer)` })
-			.from(ordersTable)
-			.where(eq(ordersTable.status, 'cancelled'))
+			.from(customerOrdersTable)
+			.where(eq(customerOrdersTable.status, 'cancelled'))
 			.as('cancelled');
 		const users = db
 			.select({ users: sql<string>`cast(count(*) as integer)` })
@@ -33,22 +33,21 @@ export const load: PageServerLoad = async ({ fetch }) => {
 	async function getRecentOrders() {
 		return db
 			.select({
-				id: ordersTable.id,
-				refno: ordersTable.refno,
-				recipient: sql<string>`concat(${usersTable.firstName},
-					case when ${usersTable.middleName} is not null then concat(' ', ${usersTable.middleName}, ' ') else ' '  end,
-					${usersTable.lastName})`,
-				status: ordersTable.status,
-				createdAt: ordersTable.createdAt
+				id: customerOrdersTable.id,
+				refno: customerOrdersTable.referenceNo,
+				recipient: sql<string>`concat(${customerOrdersTable.firstName},
+					case when ${customerOrdersTable.middleName} is not null then concat(' ', ${customerOrdersTable.middleName}, ' ') else ' '  end,
+					${customerOrdersTable.lastName})`,
+				status: customerOrdersTable.status,
+				createdAt: customerOrdersTable.createdAt
 			})
-			.from(ordersTable)
-			.innerJoin(usersTable, eq(ordersTable.userId, usersTable.id))
-			.orderBy(desc(ordersTable.createdAt))
+			.from(customerOrdersTable)
+			.orderBy(desc(customerOrdersTable.createdAt))
 			.where(
 				and(
-					not(eq(ordersTable.status, 'delivered')),
-					not(eq(ordersTable.status, 'rejected')),
-					not(eq(ordersTable.status, 'delivering'))
+					not(eq(customerOrdersTable.status, 'delivered')),
+					not(eq(customerOrdersTable.status, 'rejected')),
+					not(eq(customerOrdersTable.status, 'delivering'))
 				)
 			)
 			.limit(10);

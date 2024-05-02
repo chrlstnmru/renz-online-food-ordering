@@ -1,13 +1,13 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
+	import Toaster, { addToast } from '$lib/components/Toaster.svelte';
+	import { supabaseClient } from '$lib/supabaseClient';
 	import { capitalize } from '$lib/utils/helpers';
+	import { onMount, setContext } from 'svelte';
 	import { writable } from 'svelte/store';
 	import PageHeader from './_components/PageHeader.svelte';
 	import SideNav from './_components/SideNav.svelte';
-	import { onMount, setContext } from 'svelte';
-	import { supabaseClient } from '$lib/supabaseClient';
-	import { invalidate, invalidateAll } from '$app/navigation';
-	import Toaster, { addToast } from '$lib/components/Toaster.svelte';
 
 	// export let data: LayoutData;
 	$: title = capitalize($page.url.pathname.substring('/_admin/'.length));
@@ -20,7 +20,7 @@
 			.channel('new-order')
 			.on(
 				'postgres_changes',
-				{ event: 'INSERT', schema: 'public', table: 'orders' },
+				{ event: 'INSERT', schema: 'public', table: 'customer_orders' },
 				async (payload: any) => {
 					addToast(
 						{
@@ -34,7 +34,7 @@
 			)
 			.on(
 				'postgres_changes',
-				{ event: 'UPDATE', schema: 'public', table: 'orders' },
+				{ event: 'UPDATE', schema: 'public', table: 'customer_orders' },
 				async (payload: any) => {
 					if (payload.new.status === 'cancelled') {
 						addToast(

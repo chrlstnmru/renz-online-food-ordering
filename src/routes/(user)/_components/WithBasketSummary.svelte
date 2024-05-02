@@ -1,10 +1,6 @@
 <script lang="ts">
-	import type { Session } from 'lucia';
-	import { getContext } from 'svelte';
-	import BasketSummary from './BasketSummary.svelte';
 	import type { DialogStates } from '@melt-ui/svelte';
-
-	const session = getContext<Session>('session');
+	import BasketSummary from './BasketSummary.svelte';
 
 	export let openCheckout: boolean = false;
 	let checkoutDialogStates: DialogStates;
@@ -20,7 +16,5 @@
 
 <div class="relative flex flex-1 gap-3">
 	<slot />
-	{#if session}
-		<BasketSummary bind:checkoutDialogStates={checkoutDialogStates} />
-	{/if}
+	<BasketSummary />
 </div>

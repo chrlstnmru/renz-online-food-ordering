@@ -1,12 +1,16 @@
 import { db } from '$lib/server/db';
-import { basketItemsTable, basketTable } from '$lib/server/db/schema/UserSchema';
+import { productsTable, variantsTable } from '$lib/server/db/schema/ProductSchema';
+import { basketItemsTable, basketTable, usersTable } from '$lib/server/db/schema/UserSchema';
+import type { BasketEntry } from '$lib/server/types';
 import { eq } from 'drizzle-orm';
 import type { LayoutServerLoad } from './$types';
-import { productsTable, variantsTable } from '$lib/server/db/schema/ProductSchema';
-import type { BasketEntry, BasketSummary } from '$lib/server/types';
 
-export const load: LayoutServerLoad = async ({ locals, depends }) => {
+export const load: LayoutServerLoad = async ({ locals }) => {
 	const session = locals.session;
+	const user = session?.user.userId
+		? (await db.select().from(usersTable).where(eq(usersTable.id, session.user.userId)).limit(1))[0]
+		: null;
+
 	async function getBasketEntries() {
 		if (!session) return [];
 
@@ -40,5 +44,5 @@ export const load: LayoutServerLoad = async ({ locals, depends }) => {
 		return result as BasketEntry[];
 	}
 
-	return { session, basketSummary: getBasketEntries() };
+	return { user, session, basketSummary: getBasketEntries() };
 };

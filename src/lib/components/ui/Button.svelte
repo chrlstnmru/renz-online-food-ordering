@@ -83,6 +83,7 @@
 
 <script lang="ts">
 	import type { SvelteHTMLElements } from 'svelte/elements';
+
 	type $$Props = SvelteHTMLElements['button'] &
 		ButtonVariants & {
 			loading?: boolean;

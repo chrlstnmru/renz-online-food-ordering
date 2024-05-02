@@ -4,7 +4,7 @@ import { error, redirect, type Handle } from '@sveltejs/kit';
 export const handle: Handle = async ({ event, resolve }) => {
 	const resourceURL = event.url.pathname;
 	const apiProtectedRoutes = ['/api/users/basket'];
-	const userProtectedRoutes = ['/basket', '/orders', '/profile', '/reviews'];
+	const userProtectedRoutes = ['/profile', '/reviews'];
 	const adminPublicRoutes = [
 		'/_admin',
 		'/_admin/setup',

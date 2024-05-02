@@ -14,16 +14,18 @@
 	import type { BasketEntry, Paginated, RatingsData, UserReview } from '$lib/server/types';
 	import { writable } from 'svelte/store';
 	import { setContext } from 'svelte';
-	import { appendEntry } from '$lib/stores/basketSummaryStore';
 	import Dialog from '$lib/components/Dialog.svelte';
 	import type { DialogStates } from '@melt-ui/svelte';
 	import Payment from '../../_components/Payment.svelte';
 	import Login from '$lib/components/Login.svelte';
 	import { dev } from '$app/environment';
+	import { useBasket } from '$lib/stores/basketStore';
 
 	export let data: PageData;
 
 	$: ({ session } = data);
+
+	const { addItem } = useBasket();
 
 	const {
 		form: basketForm,
@@ -46,7 +48,7 @@
 			if (formMsg) {
 				if (formMsg.content.id) {
 					const addedProduct = formMsg.content as BasketEntry;
-					appendEntry(addedProduct);
+					// addItem(addedProduct);
 					message = `${addedProduct.product.name} has been added to basket.`;
 				}
 				addToast(
@@ -147,12 +149,6 @@
 			loginModal.open.set(true);
 		}
 	}
-
-	function openLoginModal() {
-		if (!session) {
-			loginModal.open.set(true);
-		}
-	}
 </script>
 
 <svelte:head>
@@ -244,18 +240,27 @@
 						)}`}
 						readonly
 					/>
-					<div class="grid grid-cols-2 gap-2">
+					<div class="grid grid-cols-1 gap-2">
 						<Button
 							class="justify-center"
-							color="neutral"
+							color="primary"
 							loading={$basketSubmitting}
-							type={data.session ? 'submit' : 'button'}
-							formaction="?/addToBasket"
-							on:click={openLoginModal}
+							type="button"
+							on:click={() =>
+								addItem({
+									id: `${data.product.id}-${selectedVariant?.id ?? 'regular'}`,
+									productId: data.product.id,
+									productName: data.product.name,
+									variantId: selectedVariant?.id,
+									variant: selectedVariant?.name,
+									quantity: $basketForm.quantity,
+									price: selectedVariant?.price ?? data.product.price,
+									imageUrl: data.product.image
+								})}
 						>
 							{$basketSubmitting ? '' : 'Add to basket'}
 						</Button>
-						<Button class="justify-center" on:click={openOrderNowDialog}>Order now</Button>
+						<!-- <Button class="justify-center" on:click={openOrderNowDialog}>Order now</Button> -->
 					</div>
 				</form>
 			</div>
