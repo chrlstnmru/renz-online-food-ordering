@@ -153,6 +153,7 @@
 			<Button on:click={validateForm} class="ml-auto mt-auto max-w-max">Pay with GCash</Button>
 		{:else}
 			<Button
+				loading={$submitting}
 				disabled={$submitting}
 				type="submit"
 				class="ml-auto mt-auto max-w-max"

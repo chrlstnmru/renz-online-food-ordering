@@ -6,6 +6,10 @@ import { db } from '$lib/server/db';
 import { customerOrderItemsTable, customerOrdersTable } from '$lib/server/db/schema/UserSchema';
 import { generateID } from '$lib/utils/helpers';
 import type { InferInsertModel } from 'drizzle-orm';
+import { transporter } from '$lib/server/nodemailer';
+import { NODEMAILER_USER } from '$env/static/private';
+import { render } from 'svelte-email';
+import NewOrder from '$lib/components/emails/NewOrder.svelte';
 
 export const load: PageServerLoad = async () => {
 	const orderForm = await superValidate(orderInformationForm);
@@ -28,13 +32,11 @@ export const actions: Actions = {
 	placeOrder: async (event) => {
 		const form = await superValidate(event, orderInformationForm);
 
-		console.log(form.data);
-
 		if (!form.valid) {
 			return fail(400, { form });
 		}
 
-		const orderId = await db.transaction(async (tx) => {
+		const newOrder = await db.transaction(async (tx) => {
 			const [order] = await tx
 				.insert(customerOrdersTable)
 				.values({
@@ -59,10 +61,41 @@ export const actions: Actions = {
 			);
 
 			await tx.insert(customerOrderItemsTable).values(items).returning();
-
-			return order.id;
+			return order;
 		});
 
-		throw redirect(302, '/checkout?success&orderId=' + orderId);
+		let total = 0;
+		const itemsToEmail = form.data.items.map((item) => {
+			total += item.total;
+
+			return {
+				name: item.productName + ` (${item.variantName ?? 'Regular'})`,
+				quantity: item.quantity,
+				price: item.total / item.quantity
+			};
+		});
+
+		const attachment = render({
+			template: NewOrder,
+			props: {
+				list: itemsToEmail,
+				total,
+				orderId: newOrder.id,
+				email: form.data.email,
+				orderDate: newOrder.createdAt.toLocaleDateString(),
+				shippingAddress: form.data.address
+			}
+		});
+
+		const email = await transporter.sendMail({
+			from: `"Renz Online Food Ordering" <${NODEMAILER_USER}>`,
+			to: form.data.email,
+			subject: 'Order Receipt',
+			html: attachment
+		});
+
+		console.log(email.response);
+
+		throw redirect(302, '/checkout?success&orderId=' + newOrder.id);
 	}
 };

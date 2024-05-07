@@ -19,34 +19,36 @@ export const load: PageServerLoad = async ({ url }) => {
 	const statusFilter: string[] = JSON.parse(url.searchParams.get('statusFilter') ?? '[]');
 
 	async function getOrders() {
-		const subquery = db
-			.selectDistinct({
-				id: customerOrdersTable.id,
-				refno: customerOrdersTable.referenceNo,
-				recipient: sql<string>`concat(${customerOrdersTable.firstName},
+		const subquery = db.$with('orders').as(
+			db
+				.selectDistinct({
+					id: customerOrdersTable.id,
+					refno: customerOrdersTable.referenceNo,
+					recipient: sql<string>`concat(${customerOrdersTable.firstName},
 					case when ${customerOrdersTable.middleName} is not null then concat(' ', ${customerOrdersTable.middleName}, ' ') else ' '  end,
 					${customerOrdersTable.lastName})`.as('recipient'),
-				description: sql<string>`
+					description: sql<string>`
 						concat(${customerOrderItemsTable.quantity},'x ') ||
 						concat(${customerOrderItemsTable.productName},' (') ||
 						concat(${customerOrderItemsTable.variantName},')')
 					`.as('description'),
-				total: customerOrderItemsTable.total,
-				verified: customerOrdersTable.verified,
-				status: customerOrdersTable.status,
-				rejectReason: customerOrdersTable.rejectReason,
-				createdAt: customerOrdersTable.createdAt,
-				updatedAt: customerOrdersTable.updatedAt
-			})
-			.from(customerOrdersTable)
-			.innerJoin(
-				customerOrderItemsTable,
-				eq(customerOrdersTable.id, customerOrderItemsTable.orderId)
-			)
-			.orderBy(desc(customerOrdersTable.updatedAt));
-		const orderQuery = subquery.$dynamic();
+					total: customerOrderItemsTable.total,
+					verified: customerOrdersTable.verified,
+					status: customerOrdersTable.status,
+					rejectReason: customerOrdersTable.rejectReason,
+					createdAt: customerOrdersTable.createdAt,
+					updatedAt: customerOrdersTable.updatedAt
+				})
+				.from(customerOrdersTable)
+				.innerJoin(
+					customerOrderItemsTable,
+					eq(customerOrdersTable.id, customerOrderItemsTable.orderId)
+				)
+				.orderBy(desc(customerOrdersTable.updatedAt))
+		);
+		const orderQuery = db.with(subquery).select().from(subquery).$dynamic();
 
-		let query = withSearch(orderQuery, `%`, [customerOrdersTable.id]);
+		let query = withSearch(orderQuery, `%`, [subquery.id]);
 
 		const verifiedfilter = paymentFilter.map((f) => {
 			if (f === 'true') return true;
@@ -60,44 +62,44 @@ export const load: PageServerLoad = async ({ url }) => {
 			query = query.where(
 				and(
 					// @ts-expect-error any
-					inArray(customerOrdersTable.status, statusFilter),
+					inArray(subquery.status, statusFilter),
 					// @ts-expect-error any
-					inArray(customerOrdersTable.verified, verifiedfilter),
+					inArray(subquery.verified, verifiedfilter),
 					// @ts-expect-error any
-					or(ilike(customerOrdersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
+					or(ilike(subquery.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
 				)
 			);
 		} else if (hasStatusFilter && hasVerifiedFilter) {
 			query = query.where(
 				and(
 					// @ts-expect-error any
-					inArray(customerOrdersTable.status, statusFilter),
+					inArray(subquery.status, statusFilter),
 					// @ts-expect-error any
-					inArray(customerOrdersTable.verified, verifiedfilter)
+					inArray(subquery.verified, verifiedfilter)
 				)
 			);
 		} else if (hasStatusFilter && search) {
 			query = query.where(
 				and(
 					// @ts-expect-error any
-					inArray(customerOrdersTable.status, statusFilter),
+					inArray(subquery.status, statusFilter),
 					// @ts-expect-error any
-					or(ilike(customerOrdersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
+					or(ilike(subquery.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
 				)
 			);
 		} else if (hasVerifiedFilter && search) {
 			query = query.where(
 				and(
 					// @ts-expect-error any
-					inArray(customerOrdersTable.verified, verifiedfilter),
+					inArray(subquery.verified, verifiedfilter),
 					// @ts-expect-error any
-					or(ilike(customerOrdersTable.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
+					or(ilike(subquery.id, `%${search}%`), ilike(subquery.recipient, `%${search}%`))
 				)
 			);
 		} else if (hasVerifiedFilter) {
-			query = withSearch(query, verifiedfilter, [customerOrdersTable.verified]);
+			query = withSearch(query, verifiedfilter, [subquery.verified]);
 		} else if (hasStatusFilter) {
-			query = withSearch(query, statusFilter, [customerOrdersTable.status]);
+			query = withSearch(query, statusFilter, [subquery.status]);
 		} else if (search) {
 			// @ts-expect-error any
 			query = withSearch(query, `%${search}%`, [subquery.recipient, subquery.id]);

@@ -5,7 +5,7 @@
 	const { items, total } = useBasket();
 </script>
 
-<div class="card flex min-w-[500px] flex-col gap-4">
+<div class="card flex min-w-[500px] flex-col gap-4 md:hidden">
 	<h2 class="text-2xl font-semibold">Items</h2>
 	<div class="custom-scrollbar max-h-96">
 		<ul class="space-y-3">

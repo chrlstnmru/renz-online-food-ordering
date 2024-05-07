@@ -1,16 +1,12 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import Button from '$lib/components/ui/Button.svelte';
 	import { useBasket } from '$lib/stores/basketStore';
 	import { formatter } from '$lib/utils/helpers';
 	import WithBasketSummary from '../_components/WithBasketSummary.svelte';
-	import type { PageData } from './$types';
 	import { BasketTable } from './_components/table';
 
-	export let data: PageData;
-
 	const { items, total } = useBasket();
-
-	let openCheckout = false;
 </script>
 
 <WithBasketSummary>
@@ -23,7 +19,7 @@
 						Total: {formatter.format($total)}
 					</span>
 				</div>
-				<Button class="hidden justify-center lg:inline" on:click={() => (openCheckout = true)}>
+				<Button class="hidden justify-center lg:inline" on:click={() => goto('/checkout')}>
 					Checkout
 				</Button>
 			</div>

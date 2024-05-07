@@ -26,6 +26,14 @@
 			href: '/reviews'
 		},
 		{
+			name: 'Orders',
+			href: '/orders'
+		},
+		{
+			name: 'Basket',
+			href: '/basket'
+		},
+		{
 			name: 'Logout',
 			href: '/logout?redirectTo=/home'
 		}
@@ -101,10 +109,12 @@
 					{/if}
 				</ul>
 			</nav>
-			<MobileNav navlinks={navlinks} />
+			<MobileNav session={session} navlinks={navlinks} />
 
 			{#if !session}
-				<Button on:click={void goto(`/login?redirectTo=${$page.url.pathname}`)}>Log In</Button>
+				<Button class="md:hidden" on:click={void goto(`/login?redirectTo=${$page.url.pathname}`)}>
+					Log In
+				</Button>
 			{/if}
 		</div>
 	</div>

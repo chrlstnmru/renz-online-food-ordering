@@ -4,6 +4,7 @@
 	import Button, { buttonVariants } from '$lib/components/ui/Button.svelte';
 	import Input from '$lib/components/ui/Input.svelte';
 	import { useBasket } from '$lib/stores/basketStore';
+	import { formatter } from '$lib/utils/helpers';
 	import { OrderForm, OrderList } from './_components';
 
 	export let data;
@@ -15,7 +16,7 @@
 
 	let copyDisabled = false;
 
-	$: if (success) clear()
+	$: if (success && browser) clear();
 
 	function copyOrderId() {
 		if (orderId) {
@@ -25,6 +26,10 @@
 		}
 	}
 </script>
+
+<svelte:head>
+	<title>Checkout</title>
+</svelte:head>
 
 {#if success && orderId}
 	<div class="card grid flex-1 place-items-center">
@@ -44,10 +49,13 @@
 		<OrderList />
 	</div>
 {:else}
-	<div class="card grid flex-1 place-items-center">
-		<div class="flex flex-col items-center gap-4">
-			<p class="text-2xl text-neutral-400">No items in basket</p>
-			<a class={buttonVariants({ class: 'hover:text-white' })} href="/home">Go to Home</a>
+	<div class="card flex flex-1 flex-col place-items-center">
+		<div class="w-full items-center justify-between gap-4 lg:flex">
+			<h2 class="text-2xl font-semibold">Checkout</h2>
+		</div>
+
+		<div class="grid flex-1 place-items-center p-2">
+			<p class="text-2xl text-neutral-400">No items to checkout</p>
 		</div>
 	</div>
 {/if}

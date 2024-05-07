@@ -5,11 +5,15 @@
 
 	import Button from '$lib/components/ui/Button.svelte';
 	import type { NavLink } from '$lib/components/types';
+	import type { Session } from 'lucia';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 
 	export let navlinks: NavLink[];
+	export let session: Session | null;
 
 	const {
-		elements: { trigger, overlay, content, title, description, close, portalled },
+		elements: { trigger, overlay, content, close, portalled },
 		states: { open }
 	} = createDialog({
 		forceVisible: true
@@ -67,9 +71,24 @@
 			<nav class="mt-6">
 				<ul class="space-y-4">
 					{#each navlinks as { name, href }}
-						<li class="text-center text-xl">
-							<a href={href} on:click={() => open.set(false)}>{name}</a>
-						</li>
+						{#if href.startsWith('/logout')}
+							{#if session}
+								<li class="text-center text-xl">
+									<a href={href} on:click={() => open.set(false)}>{name}</a>
+								</li>
+							{:else}
+								<Button
+									class="mt-4 w-full justify-center"
+									on:click={void goto(`/login?redirectTo=${$page.url.pathname}`)}
+								>
+									Log In
+								</Button>
+							{/if}
+						{:else}
+							<li class="text-center text-xl">
+								<a href={href} on:click={() => open.set(false)}>{name}</a>
+							</li>
+						{/if}
 					{/each}
 				</ul>
 			</nav>

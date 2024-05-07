@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { addToast } from '$lib/components/Toaster.svelte';
 import persistedStore from '$lib/peristedStore';
 import type { Session } from 'lucia';
 import { getContext, setContext } from 'svelte';
@@ -36,6 +37,17 @@ export function createBasket(session: Session | null, initial: BasketItem[] = []
 				items[existing].quantity += item.quantity;
 				return items;
 			}
+
+			addToast(
+				{
+					title: 'Item added',
+					description: `${item.quantity}x ${item.productName} (${
+						item.variant ?? 'Regular'
+					}) has been added to your basket`
+				},
+				'success'
+			);
+
 			return [...items, item];
 		});
 	}
