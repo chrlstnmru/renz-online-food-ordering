@@ -141,6 +141,7 @@ export const usersTable = pgTable('users', {
 	address: varchar('address', { length: 255 }),
 	image: text('image'),
 	onboarded: boolean('onboarded').default(false).notNull(),
+	verified: boolean('verified').default(false).notNull(),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
@@ -170,4 +171,8 @@ export const keysTable = pgTable('user_keys', {
 	hashedPassword: varchar('hashed_password', {
 		length: 255
 	})
+});
+
+export const tokensTable = pgTable('email_verification_tokens', {
+	token: text('token').notNull()
 });

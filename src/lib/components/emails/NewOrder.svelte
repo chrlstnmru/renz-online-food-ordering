@@ -197,6 +197,18 @@
 							</Text>
 						</Container>
 					</Container>
+
+					<Hr style={{ margin: '1.5rem 0' }} />
+
+					<Container style={{ fontSize: '0.5rem', maxWidth: '100%', opacity: 0.8 }}>
+						<Text style={{ textAlign: 'center' }}>
+							If you encountered any issues during the process or have any questions about our
+							service, feel free to reach us at <a href="mailto:renzpancitmalabon@gmail.com"
+								>renzpancitmalabon@gmail.com</a
+							>
+							or contact us on <a href="tel:+639555027941">09555027941</a>.
+						</Text>
+					</Container>
 				</Container>
 			</Container>
 		</Container>

@@ -32,12 +32,15 @@ export const GET: RequestHandler = async ({ url, cookies, locals }) => {
 		throw error(400, `OAuth user not found`);
 	}
 
-	const [status] = await db
-		.selectDistinct({ onboarded: usersTable.onboarded })
-		.from(usersTable)
-		.where(eq(usersTable.id, user.userId))
-		.limit(1);
-	locals.onboarded = status.onboarded;
+	await db.transaction(async (tx) => {
+		await tx.update(usersTable).set({ verified: true }).where(eq(usersTable.id, user.userId));
+		const [status] = await tx
+			.selectDistinct({ onboarded: usersTable.onboarded })
+			.from(usersTable)
+			.where(eq(usersTable.id, user.userId))
+			.limit(1);
+		locals.onboarded = status.onboarded;
+	});
 
 	const session = await userAuth.createSession({
 		userId: user.userId,

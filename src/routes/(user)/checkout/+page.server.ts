@@ -88,7 +88,7 @@ export const actions: Actions = {
 		});
 
 		const email = await transporter.sendMail({
-			from: `"Renz Online Food Ordering" <${NODEMAILER_USER}>`,
+			from: `"RENZ Food Ordering" <${NODEMAILER_USER}>`,
 			to: form.data.email,
 			subject: 'Order Receipt',
 			html: attachment

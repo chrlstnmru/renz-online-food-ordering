@@ -73,7 +73,7 @@
 	</h2>
 	<form class="flex flex-1 flex-col" method="post" use:enhance>
 		{#if !showPaymentInfo}
-			<div class="flex w-full items-center gap-4">
+			<div class="grid w-full grid-cols-3 items-center gap-4 sm:grid-cols-1">
 				<Input
 					class="w-full flex-1"
 					label="First name"
@@ -100,7 +100,7 @@
 					disabled={$submitting}
 				/>
 			</div>
-			<div class="flex items-center gap-4">
+			<div class="grid grid-cols-2 items-center gap-4 sm:grid-cols-1">
 				<Input
 					label="Email"
 					name="email"
@@ -123,9 +123,9 @@
 			<Input label="Address" name="address" bind:value={data.address} required />
 		{:else}
 			<div>
-				<div class="flex w-full gap-4">
-					<div class="aspect-square w-96">
-						<img class="object-contain" src="/images/qr.jpg" alt="gcash qr" />
+				<div class="flex w-full gap-4 sm:flex-col">
+					<div class="aspect-square w-96 sm:w-auto">
+						<img class="w-full object-contain" src="/images/qr.jpg" alt="gcash qr" />
 					</div>
 					<div class="flex flex-1 flex-col gap-4 p-4">
 						<div>
